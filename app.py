@@ -32,7 +32,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
-# ---------------- Sidebar: Developer + Settings ----------------
+# ================= Disclaimer (bilingual) =================
+DISCLAIMER_MD = """
+---
+### ⚠️ Disclaimer / अस्वीकरण
+This project is developed for educational and portfolio purposes only.  
+It does not constitute investment, trading, or financial advice.  
+Please consult a SEBI-registered financial adviser before making any investment decisions.  
+
+यह प्रोजेक्ट केवल शैक्षिक और पोर्टफोलियो उद्देश्यों के लिए बनाया गया है।  
+यह निवेश, ट्रेडिंग या वित्तीय सलाह नहीं है।  
+किसी भी निवेश का निर्णय लेने से पहले कृपया SEBI-रजिस्टर्ड वित्तीय सलाहकार से परामर्श करें।  
+---
+"""
+
+# ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
     st.markdown("### 👨‍💻 Developer Info")
     st.markdown("**Mr. Shivam Maheshwari**")
@@ -44,6 +58,7 @@ with st.sidebar:
     st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
     st.caption("Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
+    st.markdown(DISCLAIMER_MD)
 
 # ================= Helpers =================
 def _safe_round(x, n=2):
@@ -368,7 +383,7 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "S3": _safe_round(S3, 2),
     }
 
-    # Fundamentals (display trimmed as per your request)
+    # Fundamentals (trimmed for display; numeric-safe casting)
     info = _get_info(stock)
     currency = info.get("currency")
     market_cap = info.get("marketCap")
@@ -406,7 +421,6 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
 
         "PE_TTM": _safe_round(info.get("trailingPE"), 2),
         "Forward_PE": _safe_round(info.get("forwardPE"), 2),
-        # REMOVED: PEG
         "PriceToBook": _safe_round(info.get("priceToBook"), 2),
         "EV_to_EBITDA": _safe_round(info.get("enterpriseToEbitda"), 2),
 
@@ -420,7 +434,6 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "OperatingMargin": percent_str(to_float(info.get("operatingMargins"))),
         "GrossMargin": percent_str(to_float(info.get("grossMargins"))),
 
-        # REMOVED from display: ROE, ROA, CurrentRatio, QuickRatio, FreeCashFlow, FCF_Yield
         "DebtToEquity": _safe_round(dte_n, 2),
 
         "TotalDebt": format_big_value(total_debt, currency, unit_for_inr=unit_inr),
@@ -433,7 +446,7 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "AsOf": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
-    # Scoring (kept; independent from display)
+    # Scoring (kept for info)
     flags = []
     score = 0
     max_score = 6
@@ -554,6 +567,7 @@ def render_compare_view():
     st.markdown(f"### 🔀 Compare Stocks: {', '.join(tickers_list)}")
     if len(tickers_list) < 2 or len(tickers_list) > 10:
         st.warning("Please provide 2–10 tickers in the URL, e.g., ?mode=compare&tickers=RELIANCE,TCS,INFY&unit=Cr")
+        st.markdown(DISCLAIMER_MD)
         return True
 
     tech_rows = []
@@ -620,17 +634,15 @@ def render_compare_view():
         }
         fund_rows.append(row)
 
-    # Technical Comparison table (AgGrid with pinned Ticker & Company)
+    # Technical Comparison (AgGrid pinned)
     if tech_rows:
         st.subheader("📊 Technical Comparison")
         df_t = pd.DataFrame(tech_rows)
-
         if AGGRID_AVAILABLE:
             gb_t = GridOptionsBuilder.from_dataframe(df_t)
             gb_t.configure_default_column(resizable=True, filter=True, sortable=True, min_width=120)
             gb_t.configure_column("Ticker", pinned="left", width=110)
             gb_t.configure_column("Company", pinned="left", width=220)
-            # Numeric formatting
             for col in ["Last Close","RSI","Stoploss"]:
                 if col in df_t.columns:
                     gb_t.configure_column(
@@ -645,16 +657,11 @@ def render_compare_view():
             gb_t.configure_grid_options(domLayout="normal")
             grid_options_t = gb_t.build()
             AgGrid(
-                df_t,
-                gridOptions=grid_options_t,
-                theme="balham",
-                fit_columns_on_grid_load=False,
-                allow_unsafe_jscode=True,
-                update_mode=GridUpdateMode.NO_UPDATE,
-                height=420
+                df_t, gridOptions=grid_options_t, theme="balham",
+                fit_columns_on_grid_load=False, allow_unsafe_jscode=True,
+                update_mode=GridUpdateMode.NO_UPDATE, height=420
             )
         else:
-            # Fallback static table with 2-dec formatting
             for col in ["Last Close","RSI","Stoploss"]:
                 if col in df_t.columns:
                     df_t[col] = df_t[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
@@ -662,7 +669,7 @@ def render_compare_view():
                 df_t["Volume"] = df_t["Volume"].apply(lambda v: f"{int(v):,}" if v is not None else "NA")
             st.dataframe(df_t, use_container_width=True)
 
-    # Fundamentals Comparison with pinned columns
+    # Fundamentals Comparison (AgGrid pinned)
     if fund_rows:
         st.subheader("🏦 Fundamentals Comparison")
         keep_cols = [
@@ -695,13 +702,9 @@ def render_compare_view():
             gb.configure_grid_options(domLayout="normal")
             grid_options = gb.build()
             AgGrid(
-                df_f,
-                gridOptions=grid_options,
-                theme="balham",
-                fit_columns_on_grid_load=False,
-                allow_unsafe_jscode=True,
-                update_mode=GridUpdateMode.NO_UPDATE,
-                height=480
+                df_f, gridOptions=grid_options, theme="balham",
+                fit_columns_on_grid_load=False, allow_unsafe_jscode=True,
+                update_mode=GridUpdateMode.NO_UPDATE, height=480
             )
         else:
             st.info("Install 'streamlit-aggrid' to enable pinned columns. Showing static table for now.")
@@ -723,6 +726,7 @@ def render_compare_view():
         norm_df = pd.DataFrame(perf)
         st.line_chart(norm_df, height=350, use_container_width=True)
 
+    st.markdown(DISCLAIMER_MD)
     return True
 
 # If compare mode via URL, render and stop
@@ -844,5 +848,8 @@ if run_btn:
     else:
         st.info("Could not fetch Screener.in data (might not exist for this symbol or network blocked).")
 
+    st.markdown(DISCLAIMER_MD)
+
 else:
     st.info("Select a symbol and click Analyze 🚀")
+    st.markdown(DISCLAIMER_MD)
