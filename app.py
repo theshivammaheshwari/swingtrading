@@ -7,6 +7,7 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
+import time, random  # for retry/backoff
 
 # Optional Plotly import (fallback safe if missing)
 PLOTLY_AVAILABLE = True
@@ -21,6 +22,14 @@ try:
     from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 except Exception:
     AGGRID_AVAILABLE = False
+
+# Shared requests session for yfinance (reduces rate-limit hits by reusing cookies/crumb)
+SESSION = requests.Session()
+SESSION.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+})
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
@@ -57,6 +66,7 @@ with st.sidebar:
     st.write("📱 +91-9468955596")
     st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
+    history_period = st.radio("History Range", ["3mo", "6mo", "1y"], index=1, horizontal=True)
     st.caption("Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
     st.markdown(DISCLAIMER_MD)
 
@@ -180,6 +190,20 @@ def set_query_params(**kwargs):
     except Exception:
         st.experimental_set_query_params(**kwargs)
 
+# ----- Safe history with retry/backoff -----
+def get_history_safe(stock, period="6mo", interval="1d", retries=4, backoff=1.7, jitter=0.35):
+    """Fetch history with retries + exponential backoff. Returns empty DF on failure."""
+    for attempt in range(retries):
+        try:
+            hist = stock.history(period=period, interval=interval, auto_adjust=False)
+            if not hist.empty:
+                time.sleep(0.25)  # polite throttle
+                return hist
+        except Exception:
+            wait = (backoff ** attempt) + random.uniform(0, jitter)
+            time.sleep(wait)
+    return pd.DataFrame()
+
 # ================= Data: yfinance with .NS/.BO fallback =================
 def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
     t = _sanitize_ticker(ticker)
@@ -188,11 +212,11 @@ def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
     for suf in suffixes:
         sym = t if suf == "" else f"{t}{suf}"
         tried.append(sym)
-        stock = yf.Ticker(sym)
-        hist = stock.history(period=period, interval=interval, auto_adjust=False)
+        stock = yf.Ticker(sym, session=SESSION)
+        hist = get_history_safe(stock, period=period, interval=interval)
         if not hist.empty:
             return stock, hist, sym, tried
-    return yf.Ticker(t), pd.DataFrame(), None, tried
+    return yf.Ticker(t, session=SESSION), pd.DataFrame(), None, tried
 
 def _get_info(stock):
     for getter in ("info", "get_info"):
@@ -252,9 +276,9 @@ def screener_symbol_from_used(used_symbol: str) -> str:
     return used_symbol.split(".")[0].upper()
 
 # ================= Core: Technical + Fundamentals =================
-@st.cache_data(show_spinner=False, ttl=900)
-def super_technical_analysis(ticker: str, unit_inr="Cr"):
-    stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period="6mo", interval="1d")
+@st.cache_data(show_spinner=False, ttl=1800)  # 30 mins cache
+def super_technical_analysis(ticker: str, unit_inr="Cr", period="6mo", interval="1d"):
+    stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period=period, interval=interval)
     if hist.empty:
         return None, None, used_ticker, tried, None
 
@@ -446,7 +470,7 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "AsOf": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
-    # Scoring (kept for info)
+    # Scoring (kept for info only; not all fields displayed)
     flags = []
     score = 0
     max_score = 6
@@ -572,12 +596,15 @@ def render_compare_view():
 
     tech_rows = []
     fund_rows = []
+    hists_for_perf = {}
 
     for t in tickers_list:
-        techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
+        techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q, period=history_period, interval="1d")
         if not techs or hist is None:
             st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
             continue
+
+        hists_for_perf[used or t] = hist
 
         scr_symbol = screener_symbol_from_used(used or t)
         scr = screener_fundamentals(scr_symbol) if scr_symbol else {}
@@ -713,14 +740,12 @@ def render_compare_view():
                     df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
             st.dataframe(df_f, use_container_width=True)
 
-    # Normalized performance chart
+    # Normalized performance chart (reuse already-fetched history)
     perf = {}
-    for t in tickers_list:
-        techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
-        if hist is not None and not hist.empty:
-            c = hist["Close"].astype(float).dropna()
-            if len(c) > 0:
-                perf[used or t] = (c / c.iloc[0]) * 100.0
+    for label, h in hists_for_perf.items():
+        c = h["Close"].astype(float).dropna()
+        if len(c) > 0:
+            perf[label] = (c / c.iloc[0]) * 100.0
     if perf:
         st.subheader("📈 Normalized Performance (Rebased to 100)")
         norm_df = pd.DataFrame(perf)
@@ -738,7 +763,9 @@ if run_btn:
     company_name = symbol_to_name.get(user_input, "")
     unit_inr = "Cr" if unit_choice == "Crore" else "L"
 
-    techs, funds, used, tried, hist = super_technical_analysis(user_input, unit_inr=unit_inr)
+    techs, funds, used, tried, hist = super_technical_analysis(
+        user_input, unit_inr=unit_inr, period=history_period, interval="1d"
+    )
 
     st.markdown(f"### 📈 Swing Trading Analysis - {company_name} ({user_input})")
     if used and used != user_input:
@@ -797,7 +824,7 @@ if run_btn:
         st.dataframe(tech_df, use_container_width=True)
 
         # Simple Price Chart
-        st.subheader("📉 Price Chart (6 months)")
+        st.subheader("📉 Price Chart ({} window)".format(history_period))
         chart_df = hist[["Close","EMA10","EMA20"]].copy()
         chart_df.columns = ["Close","EMA10","EMA20"]
         st.line_chart(chart_df, height=300, use_container_width=True)
