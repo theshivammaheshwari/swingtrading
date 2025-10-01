@@ -337,7 +337,7 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
     macd_ind = ta.trend.MACD(close=hist["Close"])
     hist["MACD"] = macd_ind.macd()
     hist["MACD_Signal"] = macd_ind.macd_signal()
-       hist["ATR"] = ta.volatility.AverageTrueRange(
+    hist["ATR"] = ta.volatility.AverageTrueRange(
         high=hist["High"], low=hist["Low"], close=hist["Close"], window=14
     ).average_true_range()
     hist["ADX"] = ta.trend.ADXIndicator(
