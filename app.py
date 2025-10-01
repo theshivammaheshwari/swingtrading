@@ -15,6 +15,13 @@ try:
 except Exception:
     PLOTLY_AVAILABLE = False
 
+# Optional AgGrid import for pinned columns (fallback if missing)
+AGGRID_AVAILABLE = True
+try:
+    from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+except Exception:
+    AGGRID_AVAILABLE = False
+
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
 st.markdown("""
@@ -513,144 +520,173 @@ with col_in2:
     run_btn = st.button("Analyze 🚀", use_container_width=True)
 
 # ================= Compare View (via query params) =================
-qp = get_query_params()
-mode = (qp.get("mode") or "").lower()
-if mode == "compare":
+def render_compare_view():
+    qp = get_query_params()
+    mode = (qp.get("mode") or "").lower()
+    if mode != "compare":
+        return False
     unit_q = (qp.get("unit") or "Cr")
     tickers_q = (qp.get("tickers") or "")
     tickers_list = [ _sanitize_ticker(t) for t in tickers_q.split(",") if t.strip() ]
     st.markdown(f"### 🔀 Compare Stocks: {', '.join(tickers_list)}")
     if len(tickers_list) < 2 or len(tickers_list) > 10:
         st.warning("Please provide 2–10 tickers in the URL, e.g., ?mode=compare&tickers=RELIANCE,TCS,INFY&unit=Cr")
-    else:
-        tech_rows = []
-        fund_rows = []
+        return True
 
-        for t in tickers_list:
-            techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
-            if not techs or hist is None:
-                st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
-                continue
+    tech_rows = []
+    fund_rows = []
 
-            # Screener details for shareholding + extra ratios
-            scr_symbol = screener_symbol_from_used(used or t)
-            scr = screener_fundamentals(scr_symbol) if scr_symbol else {}
+    for t in tickers_list:
+        techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
+        if not techs or hist is None:
+            st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
+            continue
 
-            # Technical comparison row
-            fib = techs.get("Fibonacci_Targets", {}) or {}
-            fib_str = ""
-            if fib:
-                # keep consistent ordering
-                t1 = fib.get("Target1 (0.618)") or fib.get("Target1(0.618)")
-                t2 = fib.get("Target2 (1.0)") or fib.get("Target2(1.0)")
-                if t1 is not None: fib_str += f"T1: {float(t1):.2f}"
-                if t2 is not None: fib_str += (", " if fib_str else "") + f"T2: {float(t2):.2f}"
+        scr_symbol = screener_symbol_from_used(used or t)
+        scr = screener_fundamentals(scr_symbol) if scr_symbol else {}
 
-            tech_rows.append({
-                "Ticker": used or t,
-                "Company": funds.get("Company"),
-                "Sector": funds.get("Sector"),
-                "Industry": funds.get("Industry"),
-                "Signal": techs["Signal"],
-                "Strength": techs["Strength"],
-                "Last Close": techs["Close"],
-                "RSI": techs["RSI"],
-                "Stoploss": techs["Stoploss"],
-                "Fibonacci Targets": fib_str if fib_str else "NA",
-                "Volume": techs["Volume"],
-            })
+        # Technical row
+        fib = techs.get("Fibonacci_Targets", {}) or {}
+        fib_str = ""
+        if fib:
+            t1 = fib.get("Target1 (0.618)") or fib.get("Target1(0.618)")
+            t2 = fib.get("Target2 (1.0)") or fib.get("Target2(1.0)")
+            if t1 is not None: fib_str += f"T1: {float(t1):.2f}"
+            if t2 is not None: fib_str += (", " if fib_str else "") + f"T2: {float(t2):.2f}"
 
-            # Fundamentals comparison row (mix yfinance + screener)
-            row = {
-                "Ticker": used or t,
-                "Company": funds.get("Company"),
-                "Sector": funds.get("Sector"),
-                "Industry": funds.get("Industry"),
+        tech_rows.append({
+            "Ticker": used or t,
+            "Company": funds.get("Company"),
+            "Sector": funds.get("Sector"),
+            "Industry": funds.get("Industry"),
+            "Signal": techs["Signal"],
+            "Strength": techs["Strength"],
+            "Last Close": techs["Close"],
+            "RSI": techs["RSI"],
+            "Stoploss": techs["Stoploss"],
+            "Fibonacci Targets": fib_str if fib_str else "NA",
+            "Volume": techs["Volume"],
+        })
 
-                # Size & Valuation
-                "Market Cap": funds.get("MarketCap"),
-                "Enterprise Value": funds.get("EnterpriseValue"),
-                "PE (TTM)": funds.get("PE_TTM"),
-                "Forward PE": funds.get("Forward_PE"),
-                "PEG": funds.get("PEG"),
-                "Price to Book": funds.get("PriceToBook"),
-                "EV/EBITDA": funds.get("EV_to_EBITDA"),
-                "Stock P/E": scr.get("Stock P/E") or funds.get("PE_TTM"),
+        # Fundamentals row (trimmed per your request)
+        row = {
+            "Ticker": used or t,
+            "Company": funds.get("Company"),
+            "Sector": funds.get("Sector"),
+            "Industry": funds.get("Industry"),
 
-                # Dividends
-                "Dividends": funds.get("DividendRate"),
-                "Dividend Yield": funds.get("DividendYield"),
-                "Payout Ratio": funds.get("PayoutRatio"),
+            # Size & Valuation
+            "Market Cap": funds.get("MarketCap"),
+            "Enterprise Value": funds.get("EnterpriseValue"),
+            "PE (TTM)": funds.get("PE_TTM"),
+            "Price to Book": funds.get("PriceToBook"),
+            "EV/EBITDA": funds.get("EV_to_EBITDA"),
+            "Stock P/E": scr.get("Stock P/E") or funds.get("PE_TTM"),
 
-                # Growth & Profitability
-                "Revenue Growth": funds.get("RevenueGrowth"),
-                "Earnings Growth": funds.get("EarningsGrowth"),
-                "Profit Margin": funds.get("ProfitMargin"),
-                "Operating Margin": funds.get("OperatingMargin"),
-                "Gross Margin": funds.get("GrossMargin"),
-                "ROE": funds.get("ROE"),
-                "ROA": funds.get("ROA"),
-                "ROCE": scr.get("ROCE") or scr.get("ROCE 3Yr") or scr.get("Return on capital employed"),
+            # Dividends
+            "Dividends": funds.get("DividendRate"),
+            "Dividend Yield": funds.get("DividendYield"),
 
-                # Balance Sheet & CF
-                "Debt to Equity": funds.get("DebtToEquity"),
-                "Total Debt": funds.get("TotalDebt"),
-                "Total Cash": funds.get("TotalCash"),
-                "Free Cash Flow": funds.get("FreeCashFlow"),
-                "Current Price": funds.get("CurrentPrice"),
-                "High / Low": scr.get("High / Low") or funds.get("HighLow52W"),
-                "Book Value": scr.get("Book Value") or funds.get("BookValue"),
+            # Growth & Profitability
+            "Revenue Growth": funds.get("RevenueGrowth"),
+            "Earnings Growth": funds.get("EarningsGrowth"),
+            "Profit Margin": funds.get("ProfitMargin"),
+            "Operating Margin": funds.get("OperatingMargin"),
+            "Gross Margin": funds.get("GrossMargin"),
+            "ROCE": scr.get("ROCE") or scr.get("ROCE 3Yr") or scr.get("Return on capital employed"),
 
-                # Shareholding Pattern (Screener)
-                "Promoters": scr.get("Promoters"),
-                "FIIs": scr.get("FIIs"),
-                "DIIs": scr.get("DIIs"),
-                "Government": scr.get("Government"),
-                "Public": scr.get("Public"),
-                "No. of Shareholders": scr.get("No. of Shareholders"),
-            }
+            # Balance Sheet & Price
+            "Debt to Equity": funds.get("DebtToEquity"),
+            "Total Debt": funds.get("TotalDebt"),
+            "Total Cash": funds.get("TotalCash"),
 
-            fund_rows.append(row)
+            "Current Price": funds.get("CurrentPrice"),
+            "High / Low": scr.get("High / Low") or funds.get("HighLow52W"),
+            "Book Value": scr.get("Book Value") or funds.get("BookValue"),
+        }
+        fund_rows.append(row)
 
-        # Technical comparison table
-        if tech_rows:
-            st.subheader("📊 Technical Comparison")
-            df_t = pd.DataFrame(tech_rows)
-            # Format numerics
-            for col in ["Last Close","RSI","Stoploss"]:
-                if col in df_t.columns:
-                    df_t[col] = df_t[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
-            if "Volume" in df_t.columns:
-                df_t["Volume"] = df_t["Volume"].apply(lambda v: f"{int(v):,}" if v is not None else "NA")
-            st.dataframe(df_t, use_container_width=True)
+    # Technical Comparison table
+    if tech_rows:
+        st.subheader("📊 Technical Comparison")
+        df_t = pd.DataFrame(tech_rows)
+        for col in ["Last Close","RSI","Stoploss"]:
+            if col in df_t.columns:
+                df_t[col] = df_t[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+        if "Volume" in df_t.columns:
+            df_t["Volume"] = df_t["Volume"].apply(lambda v: f"{int(v):,}" if v is not None else "NA")
+        st.dataframe(df_t, use_container_width=True)
 
-        # Fundamentals + Shareholding comparison table (wide)
-        if fund_rows:
-            st.subheader("🏦 Fundamentals + Shareholding Comparison")
-            df_f = pd.DataFrame(fund_rows)
+    # Fundamentals Comparison with pinned columns
+    if fund_rows:
+        st.subheader("🏦 Fundamentals Comparison")
+        keep_cols = [
+            "Ticker", "Company", "Sector", "Industry",
+            "Market Cap", "Enterprise Value",
+            "PE (TTM)", "Price to Book", "EV/EBITDA", "Stock P/E",
+            "Dividends", "Dividend Yield",
+            "Revenue Growth", "Earnings Growth", "Profit Margin", "Operating Margin", "Gross Margin", "ROCE",
+            "Debt to Equity", "Total Debt", "Total Cash",
+            "Current Price", "High / Low", "Book Value"
+        ]
+        df_f = pd.DataFrame(fund_rows)
+        for c in keep_cols:
+            if c not in df_f.columns:
+                df_f[c] = None
+        df_f = df_f[keep_cols]
 
-            # Format plain numerics to 2-dec
-            num_cols = ["PE (TTM)","Forward PE","PEG","Price to Book","EV/EBITDA","Dividends","Debt to Equity","Book Value","Current Price"]
+        if AGGRID_AVAILABLE:
+            gb = GridOptionsBuilder.from_dataframe(df_f)
+            gb.configure_default_column(resizable=True, filter=True, sortable=True, min_width=120)
+            gb.configure_column("Ticker", pinned="left", width=110)
+            gb.configure_column("Company", pinned="left", width=220)
+
+            num_cols = ["PE (TTM)", "Price to Book", "EV/EBITDA", "Dividends", "Debt to Equity", "Current Price", "Book Value"]
             for col in num_cols:
                 if col in df_f.columns:
-                    df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+                    gb.configure_column(
+                        col,
+                        type=["numericColumn"],
+                        valueFormatter="value == null ? '' : Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                    )
+            gb.configure_grid_options(domLayout="normal")  # horizontal scroll
 
+            grid_options = gb.build()
+            AgGrid(
+                df_f,
+                gridOptions=grid_options,
+                theme="balham",
+                fit_columns_on_grid_load=False,
+                allow_unsafe_jscode=True,
+                update_mode=GridUpdateMode.NO_UPDATE,
+                height=480
+            )
+        else:
+            st.info("Install 'streamlit-aggrid' to enable pinned columns. Showing static table for now.")
+            # Format some numeric columns to 2-dec in static table
+            for col in ["PE (TTM)","Price to Book","EV/EBITDA","Dividends","Debt to Equity","Current Price","Book Value"]:
+                if col in df_f.columns:
+                    df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
             st.dataframe(df_f, use_container_width=True)
 
-        # Normalized performance chart
-        perf = {}
-        for t in tickers_list:
-            techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
-            if hist is not None and not hist.empty:
-                c = hist["Close"].astype(float).dropna()
-                if len(c) > 0:
-                    perf[used or t] = (c / c.iloc[0]) * 100.0
-        if perf:
-            st.subheader("📈 Normalized Performance (Rebased to 100)")
-            norm_df = pd.DataFrame(perf)
-            st.line_chart(norm_df, height=350, use_container_width=True)
+    # Normalized performance chart
+    perf = {}
+    for t in tickers_list:
+        techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
+        if hist is not None and not hist.empty:
+            c = hist["Close"].astype(float).dropna()
+            if len(c) > 0:
+                perf[used or t] = (c / c.iloc[0]) * 100.0
+    if perf:
+        st.subheader("📈 Normalized Performance (Rebased to 100)")
+        norm_df = pd.DataFrame(perf)
+        st.line_chart(norm_df, height=350, use_container_width=True)
 
-    st.stop()  # do not render main view
+    return True
+
+# If compare mode via URL, render and stop
+if render_compare_view():
+    st.stop()
 
 # ================= Run Single Ticker Analysis =================
 if run_btn:
@@ -709,7 +745,9 @@ if run_btn:
             ["S2", techs["S2"]],
             ["S3", techs["S3"]],
         ], columns=["Metric","Value"])
-        tech_df["Value"] = tech_df["Value"].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else (f"{int(v):,}" if isinstance(v, (int, np.integer)) else v))
+        tech_df["Value"] = tech_df["Value"].apply(
+            lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else (f"{int(v):,}" if isinstance(v, (int, np.integer)) else v)
+        )
         tech_df.index = range(1, len(tech_df)+1)
         st.dataframe(tech_df, use_container_width=True)
 
