@@ -32,30 +32,71 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== AMAZON NATIVE AD (Your Code) ==========
-def amazon_native_ad():
-    """Amazon Native Ad - 728x90 Banner"""
-    ad_html = """
-    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-        <p style="font-size: 11px; color: #999; margin-bottom: 10px; font-weight: 600;">Advertisement</p>
-        <div style="display: inline-block;">
-            <script type="text/javascript" language="javascript">
-                var aax_size='728x90';
-                var aax_pubname = 'shivam0a3-21';
-                var aax_src='302';
-            </script>
-            <script type="text/javascript" language="javascript" src="https://amzn.to/3WhUueF"></script>
+# ========== SINGLE PRODUCT AD ==========
+def amazon_featured_product():
+    """Featured Amazon product as ad banner"""
+    product_ad = """
+    <div style="background: linear-gradient(135deg, #FF9900 0%, #FFD700 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+        <div style="display: flex; align-items: center; gap: 20px; background: white; padding: 20px; border-radius: 10px;">
+            
+            <!-- Product Image -->
+            <div style="flex: 0 0 auto;">
+                <a href="https://amzn.to/3WhUueF" target="_blank">
+                    <img src="https://m.media-amazon.com/images/I/71VYazLksqL._SY466_.jpg" 
+                         width="150" 
+                         style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.3s;"
+                         onmouseover="this.style.transform='scale(1.05)'"
+                         onmouseout="this.style.transform='scale(1)'">
+                </a>
+            </div>
+            
+            <!-- Product Details -->
+            <div style="flex: 1;">
+                <div style="background: #FF9900; color: white; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px;">
+                    📚 RECOMMENDED
+                </div>
+                <h3 style="margin: 8px 0; font-size: 20px; color: #333;">
+                    The Intelligent Investor
+                </h3>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">
+                    by Benjamin Graham
+                </p>
+                <p style="margin: 10px 0; font-size: 13px; color: #555; line-height: 1.6;">
+                    The definitive book on value investing. A must-read for every stock market investor.
+                </p>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+                    <div style="font-size: 24px; color: #B12704; font-weight: bold;">
+                        ₹599
+                    </div>
+                    <a href="https://amzn.to/3WhUueF" 
+                       target="_blank" 
+                       style="background: #FF9900; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.3s;"
+                       onmouseover="this.style.background='#E88B00'; this.style.transform='translateY(-2px)'"
+                       onmouseout="this.style.background='#FF9900'; this.style.transform='translateY(0)'">
+                        Buy on Amazon →
+                    </a>
+                </div>
+                <div style="margin-top: 12px;">
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 8px;">
+                        ⭐ 4.5/5 Rating
+                    </span>
+                    <span style="background: #fff3e0; color: #e65100; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                        🔥 Bestseller
+                    </span>
+                </div>
+            </div>
+            
         </div>
-        <p style="font-size: 9px; color: #666; margin-top: 8px;">
+        <p style="text-align: center; color: white; font-size: 10px; margin-top: 12px; opacity: 0.9;">
             As an Amazon Associate, we earn from qualifying purchases
         </p>
     </div>
     """
-    components.html(ad_html, height=150, scrolling=False)
+    components.html(product_ad, height=260)
 
-# Display ad before title
-amazon_native_ad()
-# ========== END AMAZON AD ==========
+# Display before title
+amazon_featured_product()
+# ========== END AD ==========
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
 # ================= Disclaimer (bilingual) =================
