@@ -410,12 +410,13 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
 
         "PE_TTM": _safe_round(info.get("trailingPE"), 2),
         "Forward_PE": _safe_round(info.get("forwardPE"), 2),
-        "PEG": _safe_round(info.get("pegRatio"), 2),
+        # REMOVED: "PEG"
         "PriceToBook": _safe_round(info.get("priceToBook"), 2),
         "EV_to_EBITDA": _safe_round(info.get("enterpriseToEbitda"), 2),
 
         "DividendRate": _safe_round(info.get("dividendRate") or info.get("trailingAnnualDividendRate"), 2),
         "DividendYield": percent_str(to_float(info.get("dividendYield"))),
+        # "PayoutRatio" remains
         "PayoutRatio": percent_str(to_float(info.get("payoutRatio"))),
 
         "RevenueGrowth": percent_str(revg_n),
@@ -423,17 +424,14 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "ProfitMargin": percent_str(pm_n),
         "OperatingMargin": percent_str(to_float(info.get("operatingMargins"))),
         "GrossMargin": percent_str(to_float(info.get("grossMargins"))),
-        "ROE": percent_str(roe_n),
-        "ROA": percent_str(to_float(info.get("returnOnAssets"))),
 
+        # REMOVED: "ROE", "ROA"
         "DebtToEquity": _safe_round(dte_n, 2),
-        "CurrentRatio": _safe_round(info.get("currentRatio"), 2),
-        "QuickRatio": _safe_round(info.get("quickRatio"), 2),
+        # REMOVED: "CurrentRatio", "QuickRatio"
 
         "TotalDebt": format_big_value(total_debt, currency, unit_for_inr=unit_inr),
         "TotalCash": format_big_value(total_cash, currency, unit_for_inr=unit_inr),
-        "FreeCashFlow": format_big_value(free_cf, currency, unit_for_inr=unit_inr),
-        "FCF_Yield": percent_str(fcf_yield_n),
+        # REMOVED: "FreeCashFlow", "FCF_Yield"
 
         "Beta": _safe_round(info.get("beta"), 2),
         "CurrentPrice": _safe_round(info.get("currentPrice") or latest["Close"], 2),
@@ -616,7 +614,7 @@ def render_compare_view():
             "Volume": techs["Volume"],
         })
 
-        # Fundamentals row (trimmed per your request)
+        # Fundamentals row (trimmed)
         row = {
             "Ticker": used or t,
             "Company": funds.get("Company"),
