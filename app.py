@@ -44,7 +44,7 @@ def amazon_native_ad():
                 var aax_pubname = 'shivam0a3-21';
                 var aax_src='302';
             </script>
-            <script type="text/javascript" language="javascript" src="https://c.amazon-adsystem.com/aax2/assoc.js"></script>
+            <script type="text/javascript" language="javascript" src="https://amzn.to/3WhUueF"></script>
         </div>
         <p style="font-size: 9px; color: #666; margin-top: 8px;">
             As an Amazon Associate, we earn from qualifying purchases
