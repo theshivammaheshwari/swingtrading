@@ -120,6 +120,10 @@ def format_big_value(x, currency, unit_for_inr="Cr", decimals=2):
 def style_2dec(df):
     return df.style.format(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v).hide(axis="index")
 
+def percent_str(x):
+    v = _pct(x)
+    return f"{v:.2f}%" if v is not None else None
+
 # Query params helpers
 def get_query_params():
     try:
@@ -200,6 +204,12 @@ def screener_fundamentals(stock_code):
         return fundamentals
     except Exception:
         return {}
+
+def screener_symbol_from_used(used_symbol: str) -> str:
+    # convert "TCS.NS" -> "TCS"
+    if not used_symbol:
+        return ""
+    return used_symbol.split(".")[0].upper()
 
 # ================= Core: Technical + Fundamentals =================
 def super_technical_analysis(ticker: str, unit_inr="Cr"):
@@ -360,23 +370,27 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "PEG": _safe_round(info.get("pegRatio"), 2),
         "PriceToBook": _safe_round(info.get("priceToBook"), 2),
         "EV_to_EBITDA": _safe_round(info.get("enterpriseToEbitda"), 2),
-        "DividendYield_%": _pct(info.get("dividendYield")),
-        "PayoutRatio_%": _pct(info.get("payoutRatio")),
-        "RevenueGrowth_%": _pct(revg),
-        "EarningsGrowth_%": _pct(info.get("earningsGrowth")),
-        "ProfitMargin_%": _pct(pm),
-        "OperatingMargin_%": _pct(info.get("operatingMargins")),
-        "GrossMargin_%": _pct(info.get("grossMargins")),
-        "ROE_%": _pct(roe),
-        "ROA_%": _pct(info.get("returnOnAssets")),
+        "DividendRate": _safe_round(info.get("dividendRate") or info.get("trailingAnnualDividendRate"), 2),
+        "DividendYield": percent_str(info.get("dividendYield")),
+        "PayoutRatio": percent_str(info.get("payoutRatio")),
+        "RevenueGrowth": percent_str(revg),
+        "EarningsGrowth": percent_str(info.get("earningsGrowth")),
+        "ProfitMargin": percent_str(pm),
+        "OperatingMargin": percent_str(info.get("operatingMargins")),
+        "GrossMargin": percent_str(info.get("grossMargins")),
+        "ROE": percent_str(roe),
+        "ROA": percent_str(info.get("returnOnAssets")),
         "DebtToEquity": _safe_round(dte, 2),
         "CurrentRatio": _safe_round(info.get("currentRatio"), 2),
         "QuickRatio": _safe_round(info.get("quickRatio"), 2),
         "TotalDebt": format_big_value(total_debt, currency, unit_for_inr=unit_inr),
         "TotalCash": format_big_value(total_cash, currency, unit_for_inr=unit_inr),
         "FreeCashFlow": format_big_value(free_cf, currency, unit_for_inr=unit_inr),
-        "FCF_Yield_%": _pct(fcf_yield),
+        "FCF_Yield": percent_str(fcf_yield),
         "Beta": _safe_round(info.get("beta"), 2),
+        "CurrentPrice": _safe_round(info.get("currentPrice") or latest["Close"], 2),
+        "HighLow52W": f"{_safe_round(info.get('fiftyTwoWeekHigh'),2)} / {_safe_round(info.get('fiftyTwoWeekLow'),2)}" if info.get("fiftyTwoWeekHigh") and info.get("fiftyTwoWeekLow") else None,
+        "BookValue": _safe_round(info.get("bookValue"), 2),
         "AsOf": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
@@ -455,14 +469,14 @@ try:
 except Exception:
     pass
 
-# ================= Sidebar: Compare feature (under INR unit) =================
+# ================= Sidebar: Compare feature (up to 10) =================
 with st.sidebar:
     st.markdown("---")
-    st.markdown("#### 🔀 Compare (2–3 tickers)")
+    st.markdown("#### 🔀 Compare (2–10 tickers)")
     unit_inr_sidebar = "Cr" if unit_choice == "Crore" else "L"
 
     if all_stock_codes:
-        cmp_sel = st.multiselect("Select tickers", all_stock_codes, max_selections=3)
+        cmp_sel = st.multiselect("Select tickers", all_stock_codes, max_selections=10)
         cmp_input_text = st.text_input("Or type comma-separated (e.g., RELIANCE, TCS, INFY)", "")
         if cmp_input_text.strip():
             cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
@@ -472,13 +486,12 @@ with st.sidebar:
         cmp_input_text = st.text_input("Enter tickers (comma-separated)", "RELIANCE, TCS")
         cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
 
-    # sanitize
     cmp_tickers = [ _sanitize_ticker(t) for t in cmp_tickers ]
     cmp_tickers = [ t for t in cmp_tickers if t ]
 
     if st.button("Get Compare Link (New Tab)"):
-        if len(cmp_tickers) < 2 or len(cmp_tickers) > 3:
-            st.warning("Please select 2 to 3 tickers.")
+        if len(cmp_tickers) < 2 or len(cmp_tickers) > 10:
+            st.warning("Please select 2 to 10 tickers.")
         else:
             qs = f"?mode=compare&tickers={','.join(cmp_tickers)}&unit={unit_inr_sidebar}"
             st.markdown(f"<a href='{qs}' target='_blank'>Open Compare View ↗️</a>", unsafe_allow_html=True)
@@ -507,69 +520,137 @@ if mode == "compare":
     tickers_q = (qp.get("tickers") or "")
     tickers_list = [ _sanitize_ticker(t) for t in tickers_q.split(",") if t.strip() ]
     st.markdown(f"### 🔀 Compare Stocks: {', '.join(tickers_list)}")
-    if len(tickers_list) < 2 or len(tickers_list) > 3:
-        st.warning("Please provide 2–3 tickers in the URL, e.g., ?mode=compare&tickers=RELIANCE,TCS,INFY&unit=Cr")
+    if len(tickers_list) < 2 or len(tickers_list) > 10:
+        st.warning("Please provide 2–10 tickers in the URL, e.g., ?mode=compare&tickers=RELIANCE,TCS,INFY&unit=Cr")
     else:
-        rows_tech = []
-        rows_fund = []
-        norm_prices = {}
+        tech_rows = []
+        fund_rows = []
+
         for t in tickers_list:
             techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
             if not techs or hist is None:
                 st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
                 continue
-            # Technical summary
-            rows_tech.append({
+
+            # Screener details for shareholding + extra ratios
+            scr_symbol = screener_symbol_from_used(used or t)
+            scr = screener_fundamentals(scr_symbol) if scr_symbol else {}
+
+            # Technical comparison row
+            fib = techs.get("Fibonacci_Targets", {}) or {}
+            fib_str = ""
+            if fib:
+                # keep consistent ordering
+                t1 = fib.get("Target1 (0.618)") or fib.get("Target1(0.618)")
+                t2 = fib.get("Target2 (1.0)") or fib.get("Target2(1.0)")
+                if t1 is not None: fib_str += f"T1: {float(t1):.2f}"
+                if t2 is not None: fib_str += (", " if fib_str else "") + f"T2: {float(t2):.2f}"
+
+            tech_rows.append({
                 "Ticker": used or t,
+                "Company": funds.get("Company"),
+                "Sector": funds.get("Sector"),
+                "Industry": funds.get("Industry"),
                 "Signal": techs["Signal"],
                 "Strength": techs["Strength"],
-                "Close": techs["Close"],
+                "Last Close": techs["Close"],
                 "RSI": techs["RSI"],
-                "ADX": techs["ADX"],
-                "ATR": techs["ATR"],
                 "Stoploss": techs["Stoploss"],
-                "Pivot": techs["Pivot"],
-                "R1": techs["R1"],
-                "S1": techs["S1"],
+                "Fibonacci Targets": fib_str if fib_str else "NA",
+                "Volume": techs["Volume"],
             })
-            # Fundamentals summary
-            rows_fund.append({
+
+            # Fundamentals comparison row (mix yfinance + screener)
+            row = {
                 "Ticker": used or t,
-                "MarketCap": funds.get("MarketCap"),
-                "PE_TTM": funds.get("PE_TTM"),
-                "PriceToBook": funds.get("PriceToBook"),
-                "ROE_%": funds.get("ROE_%"),
-                "DebtToEquity": funds.get("DebtToEquity"),
-                "ProfitMargin_%": funds.get("ProfitMargin_%"),
-                "RevenueGrowth_%": funds.get("RevenueGrowth_%"),
-            })
-            # Normalized close
-            c = hist["Close"].astype(float).dropna()
-            if len(c) > 0:
-                norm_prices[used or t] = (c / c.iloc[0]) * 100.0
+                "Company": funds.get("Company"),
+                "Sector": funds.get("Sector"),
+                "Industry": funds.get("Industry"),
 
-        if rows_tech:
+                # Size & Valuation
+                "Market Cap": funds.get("MarketCap"),
+                "Enterprise Value": funds.get("EnterpriseValue"),
+                "PE (TTM)": funds.get("PE_TTM"),
+                "Forward PE": funds.get("Forward_PE"),
+                "PEG": funds.get("PEG"),
+                "Price to Book": funds.get("PriceToBook"),
+                "EV/EBITDA": funds.get("EV_to_EBITDA"),
+                "Stock P/E": scr.get("Stock P/E") or funds.get("PE_TTM"),
+
+                # Dividends
+                "Dividends": funds.get("DividendRate"),
+                "Dividend Yield": funds.get("DividendYield"),
+                "Payout Ratio": funds.get("PayoutRatio"),
+
+                # Growth & Profitability
+                "Revenue Growth": funds.get("RevenueGrowth"),
+                "Earnings Growth": funds.get("EarningsGrowth"),
+                "Profit Margin": funds.get("ProfitMargin"),
+                "Operating Margin": funds.get("OperatingMargin"),
+                "Gross Margin": funds.get("GrossMargin"),
+                "ROE": funds.get("ROE"),
+                "ROA": funds.get("ROA"),
+                "ROCE": scr.get("ROCE") or scr.get("ROCE 3Yr") or scr.get("Return on capital employed"),
+
+                # Balance Sheet & CF
+                "Debt to Equity": funds.get("DebtToEquity"),
+                "Total Debt": funds.get("TotalDebt"),
+                "Total Cash": funds.get("TotalCash"),
+                "Free Cash Flow": funds.get("FreeCashFlow"),
+                "Current Price": funds.get("CurrentPrice"),
+                "High / Low": scr.get("High / Low") or funds.get("HighLow52W"),
+                "Book Value": scr.get("Book Value") or funds.get("BookValue"),
+
+                # Shareholding Pattern (Screener)
+                "Promoters": scr.get("Promoters"),
+                "FIIs": scr.get("FIIs"),
+                "DIIs": scr.get("DIIs"),
+                "Government": scr.get("Government"),
+                "Public": scr.get("Public"),
+                "No. of Shareholders": scr.get("No. of Shareholders"),
+            }
+
+            fund_rows.append(row)
+
+        # Technical comparison table
+        if tech_rows:
             st.subheader("📊 Technical Comparison")
-            df_t = pd.DataFrame(rows_tech)
-            df_t_display = df_t.copy()
-            for col in ["Close","RSI","ADX","ATR","Stoploss","Pivot","R1","S1"]:
-                df_t_display[col] = df_t_display[col].apply(lambda v: f"{float(v):,.2f}" if v is not None else "NA")
-            st.dataframe(df_t_display, use_container_width=True)
+            df_t = pd.DataFrame(tech_rows)
+            # Format numerics
+            for col in ["Last Close","RSI","Stoploss"]:
+                if col in df_t.columns:
+                    df_t[col] = df_t[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+            if "Volume" in df_t.columns:
+                df_t["Volume"] = df_t["Volume"].apply(lambda v: f"{int(v):,}" if v is not None else "NA")
+            st.dataframe(df_t, use_container_width=True)
 
-        if rows_fund:
-            st.subheader("🏦 Fundamentals Comparison")
-            df_f = pd.DataFrame(rows_fund)
-            # numeric 2-dec for plain numerics; keep MarketCap string as-is (already formatted in Cr/L)
-            for col in ["PE_TTM","PriceToBook","ROE_%","DebtToEquity","ProfitMargin_%","RevenueGrowth_%"]:
-                df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+        # Fundamentals + Shareholding comparison table (wide)
+        if fund_rows:
+            st.subheader("🏦 Fundamentals + Shareholding Comparison")
+            df_f = pd.DataFrame(fund_rows)
+
+            # Format plain numerics to 2-dec
+            num_cols = ["PE (TTM)","Forward PE","PEG","Price to Book","EV/EBITDA","Dividends","Debt to Equity","Book Value","Current Price"]
+            for col in num_cols:
+                if col in df_f.columns:
+                    df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+
             st.dataframe(df_f, use_container_width=True)
 
-        if norm_prices:
+        # Normalized performance chart
+        perf = {}
+        for t in tickers_list:
+            techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
+            if hist is not None and not hist.empty:
+                c = hist["Close"].astype(float).dropna()
+                if len(c) > 0:
+                    perf[used or t] = (c / c.iloc[0]) * 100.0
+        if perf:
             st.subheader("📈 Normalized Performance (Rebased to 100)")
-            norm_df = pd.DataFrame(norm_prices)
+            norm_df = pd.DataFrame(perf)
             st.line_chart(norm_df, height=350, use_container_width=True)
 
-    st.stop()  # don't render main analyze view below when in compare mode
+    st.stop()  # do not render main view
 
 # ================= Run Single Ticker Analysis =================
 if run_btn:
@@ -628,7 +709,7 @@ if run_btn:
             ["S2", techs["S2"]],
             ["S3", techs["S3"]],
         ], columns=["Metric","Value"])
-        tech_df["Value"] = tech_df["Value"].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v)
+        tech_df["Value"] = tech_df["Value"].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else (f"{int(v):,}" if isinstance(v, (int, np.integer)) else v))
         tech_df.index = range(1, len(tech_df)+1)
         st.dataframe(tech_df, use_container_width=True)
 
