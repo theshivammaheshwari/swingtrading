@@ -33,6 +33,53 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
+# ========== MARKET INDICES DISPLAY (ADD HERE) ==========
+try:
+    indices_data = fetch_market_indices()
+    
+    # Create columns for indices
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+    
+    # NIFTY 50
+    with col1:
+        nifty = indices_data[0]
+        st.metric(
+            label="📊 NIFTY 50",
+            value=f"₹{nifty['price']:,.2f}",
+            delta=f"{nifty['change']:+.2f} ({nifty['change_pct']:+.2f}%)",
+            delta_color="normal"
+        )
+    
+    # BANK NIFTY
+    with col2:
+        banknifty = indices_data[1]
+        st.metric(
+            label="🏦 BANK NIFTY",
+            value=f"₹{banknifty['price']:,.2f}",
+            delta=f"{banknifty['change']:+.2f} ({banknifty['change_pct']:+.2f}%)",
+            delta_color="normal"
+        )
+    
+    # SENSEX
+    with col3:
+        sensex = indices_data[2]
+        st.metric(
+            label="📈 SENSEX",
+            value=f"₹{sensex['price']:,.2f}",
+            delta=f"{sensex['change']:+.2f} ({sensex['change_pct']:+.2f}%)",
+            delta_color="normal"
+        )
+    
+    # Auto-refresh indicator
+    with col4:
+        st.info(f"🔄 **Auto-refresh**\n\nEvery 60 seconds")
+    
+    st.markdown("---")
+    
+except Exception as e:
+    st.warning("⚠️ Unable to load market indices. Refresh page to retry.")
+# ========== END MARKET INDICES ==========
+
 # ================= Disclaimer (bilingual) =================
 DISCLAIMER_MD = """
 ---
@@ -116,7 +163,71 @@ def to_float(x):
 def _sanitize_ticker(t):
     t = (t or "").strip().upper()
     return re.sub(r"[^A-Z0-9\.\-]", "", t)
-
+# ================= Real-time Index Fetcher =================
+@st.cache_data(show_spinner=False, ttl=60)
+def fetch_market_indices():
+    """
+    Fetch NIFTY 50, BANK NIFTY, and SENSEX real-time data
+    Cache for 60 seconds for better performance
+    """
+    try:
+        indices_data = []
+        
+        # Index symbols
+        symbols = {
+            "^NSEI": "NIFTY 50",
+            "^NSEBANK": "BANK NIFTY",
+            "^BSESN": "SENSEX"
+        }
+        
+        for symbol, name in symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="2d")
+                
+                if len(hist) >= 2:
+                    current_price = hist['Close'].iloc[-1]
+                    prev_price = hist['Close'].iloc[-2]
+                    change = current_price - prev_price
+                    change_pct = (change / prev_price) * 100
+                    
+                    indices_data.append({
+                        'name': name,
+                        'price': current_price,
+                        'change': change,
+                        'change_pct': change_pct
+                    })
+                else:
+                    # Fallback
+                    info = ticker.info
+                    current_price = info.get('regularMarketPrice', 0)
+                    prev_close = info.get('previousClose', current_price)
+                    change = current_price - prev_close
+                    change_pct = (change / prev_close) * 100 if prev_close else 0
+                    
+                    indices_data.append({
+                        'name': name,
+                        'price': current_price,
+                        'change': change,
+                        'change_pct': change_pct
+                    })
+            except:
+                indices_data.append({
+                    'name': name,
+                    'price': 0,
+                    'change': 0,
+                    'change_pct': 0
+                })
+        
+        return indices_data
+        
+    except Exception as e:
+        return [
+            {'name': 'NIFTY 50', 'price': 0, 'change': 0, 'change_pct': 0},
+            {'name': 'BANK NIFTY', 'price': 0, 'change': 0, 'change_pct': 0},
+            {'name': 'SENSEX', 'price': 0, 'change': 0, 'change_pct': 0}
+        ]
+# ============================================
 def indian_comma_format(number, decimals=2):
     try:
         neg = float(number) < 0
