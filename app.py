@@ -1286,16 +1286,7 @@ else:  # "Home - Stock Analysis"
         else:
             st.warning("No yfinance fundamentals available for this ticker.")
 
-        # Screener snapshot
-        st.markdown(f"### 📄 Screener.in Snapshot - {company_name} ({user_input})")
-        with st.spinner("Fetching Screener.in data..."):
-            scr = screener_fundamentals(user_input)
-        if scr:
-            df_scr = pd.DataFrame(list(scr.items()), columns=["Metric","Value"])
-            df_scr.index = range(1, len(df_scr)+1)
-            st.dataframe(df_scr, use_container_width=True)
-        else:
-            st.info("Could not fetch Screener.in data (might not exist for this symbol or network blocked).")
+        
 
         st.markdown(DISCLAIMER_MD)
 
