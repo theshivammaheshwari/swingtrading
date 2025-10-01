@@ -31,61 +31,7 @@ st.markdown("""
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
-
-# ========== INDICES WITH TIMESTAMP ==========
-@st.cache_data(ttl=120, show_spinner=False)
-def fetch_indices():
-    results = []
-    indices = [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]
-    
-    for symbol, name in indices:
-        try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="5d")
-            if len(hist) >= 2:
-                curr = float(hist['Close'].iloc[-1])
-                prev = float(hist['Close'].iloc[-2])
-                chg = curr - prev
-                chg_pct = (chg / prev) * 100
-                results.append({'name': name, 'price': curr, 'change': chg, 'change_pct': chg_pct})
-        except:
-            pass
-    return results
-
-# Display with timestamp
-from datetime import datetime
-
-try:
-    data = fetch_indices()
-    if data:
-        # Top row with time
-        col_time, col_refresh = st.columns([6, 1])
-        with col_time:
-            st.caption(f"🕐 Last updated: {datetime.now().strftime('%d-%b-%Y %I:%M %p')} | 🔄 Auto-refresh: 2 min")
-        with col_refresh:
-            if st.button("🔄 Now", key="refresh_now"):
-                st.cache_data.clear()
-                st.rerun()
-        
-        # Indices row
-        c1, c2, c3 = st.columns(3)
-        for i, idx in enumerate(data):
-            with [c1, c2, c3][i]:
-                icon = ["📊", "🏦", "📈"][i]
-                st.metric(f"{icon} {idx['name']}", f"₹{idx['price']:,.2f}", f"{idx['change']:+.2f} ({idx['change_pct']:+.2f}%)")
-        
-        st.markdown("---")
-except:
-    st.info("📊 Loading market indices...")
-    st.markdown("---")
-# ========== END ==========
-
-
-
 st.title("📊 Swing Trading + Fundamentals Dashboard")
-
-
-
 
 # ================= Disclaimer (bilingual) =================
 DISCLAIMER_MD = """
