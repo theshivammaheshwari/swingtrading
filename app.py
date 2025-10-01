@@ -69,6 +69,26 @@ def _pct(x, n=2):
     except Exception:
         return None
 
+def to_float(x):
+    """Safely convert mixed/str values to float; returns None if not possible."""
+    try:
+        if x is None:
+            return None
+        if isinstance(x, (int, float, np.integer, np.floating)):
+            val = float(x)
+        elif isinstance(x, str):
+            s = x.strip().replace(",", "").replace("%", "")
+            if s in ("", "NA", "N/A", "-", "--", "—"):
+                return None
+            val = float(s)
+        else:
+            val = float(x)
+        if np.isnan(val) or np.isinf(val):
+            return None
+        return val
+    except Exception:
+        return None
+
 def _sanitize_ticker(t):
     t = (t or "").strip().upper()
     return re.sub(r"[^A-Z0-9\.\-]", "", t)  # keep letters, digits, dot, dash
@@ -219,6 +239,7 @@ def screener_symbol_from_used(used_symbol: str) -> str:
     return used_symbol.split(".")[0].upper()
 
 # ================= Core: Technical + Fundamentals =================
+@st.cache_data(show_spinner=False, ttl=900)
 def super_technical_analysis(ticker: str, unit_inr="Cr"):
     stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period="6mo", interval="1d")
     if hist.empty:
@@ -349,8 +370,9 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "S3": _safe_round(S3, 2),
     }
 
-    # Fundamentals (yfinance)
+    # --- Fundamentals (yfinance) with numeric-safe casting ---
     info = _get_info(stock)
+
     currency = info.get("currency")
     market_cap = info.get("marketCap")
     enterprise_val = info.get("enterpriseValue")
@@ -358,11 +380,23 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
     total_debt = info.get("totalDebt")
     total_cash = info.get("totalCash")
 
-    fcf_yield = (free_cf / market_cap) if (free_cf and market_cap and market_cap != 0) else None
-    roe = info.get("returnOnEquity")
-    dte = info.get("debtToEquity")
-    pm = info.get("profitMargins")
-    revg = info.get("revenueGrowth")
+    market_cap_n = to_float(market_cap)
+    enterprise_val_n = to_float(enterprise_val)
+    free_cf_n = to_float(free_cf)
+    total_debt_n = to_float(total_debt)
+    total_cash_n = to_float(total_cash)
+
+    roe_raw = info.get("returnOnEquity")
+    dte_raw = info.get("debtToEquity")
+    pm_raw  = info.get("profitMargins")
+    revg_raw = info.get("revenueGrowth")
+
+    roe_n = to_float(roe_raw)
+    dte_n = to_float(dte_raw)
+    pm_n  = to_float(pm_raw)
+    revg_n = to_float(revg_raw)
+
+    fcf_yield_n = (free_cf_n / market_cap_n) if (free_cf_n is not None and market_cap_n and market_cap_n != 0) else None
 
     fundamentals = {
         "Company": info.get("longName") or info.get("shortName"),
@@ -370,30 +404,37 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "Industry": info.get("industry"),
         "Country": info.get("country"),
         "Currency": currency,
+
         "MarketCap": format_big_value(market_cap, currency, unit_for_inr=unit_inr),
         "EnterpriseValue": format_big_value(enterprise_val, currency, unit_for_inr=unit_inr),
+
         "PE_TTM": _safe_round(info.get("trailingPE"), 2),
         "Forward_PE": _safe_round(info.get("forwardPE"), 2),
         "PEG": _safe_round(info.get("pegRatio"), 2),
         "PriceToBook": _safe_round(info.get("priceToBook"), 2),
         "EV_to_EBITDA": _safe_round(info.get("enterpriseToEbitda"), 2),
+
         "DividendRate": _safe_round(info.get("dividendRate") or info.get("trailingAnnualDividendRate"), 2),
-        "DividendYield": percent_str(info.get("dividendYield")),
-        "PayoutRatio": percent_str(info.get("payoutRatio")),
-        "RevenueGrowth": percent_str(revg),
-        "EarningsGrowth": percent_str(info.get("earningsGrowth")),
-        "ProfitMargin": percent_str(pm),
-        "OperatingMargin": percent_str(info.get("operatingMargins")),
-        "GrossMargin": percent_str(info.get("grossMargins")),
-        "ROE": percent_str(roe),
-        "ROA": percent_str(info.get("returnOnAssets")),
-        "DebtToEquity": _safe_round(dte, 2),
+        "DividendYield": percent_str(to_float(info.get("dividendYield"))),
+        "PayoutRatio": percent_str(to_float(info.get("payoutRatio"))),
+
+        "RevenueGrowth": percent_str(revg_n),
+        "EarningsGrowth": percent_str(to_float(info.get("earningsGrowth"))),
+        "ProfitMargin": percent_str(pm_n),
+        "OperatingMargin": percent_str(to_float(info.get("operatingMargins"))),
+        "GrossMargin": percent_str(to_float(info.get("grossMargins"))),
+        "ROE": percent_str(roe_n),
+        "ROA": percent_str(to_float(info.get("returnOnAssets"))),
+
+        "DebtToEquity": _safe_round(dte_n, 2),
         "CurrentRatio": _safe_round(info.get("currentRatio"), 2),
         "QuickRatio": _safe_round(info.get("quickRatio"), 2),
+
         "TotalDebt": format_big_value(total_debt, currency, unit_for_inr=unit_inr),
         "TotalCash": format_big_value(total_cash, currency, unit_for_inr=unit_inr),
         "FreeCashFlow": format_big_value(free_cf, currency, unit_for_inr=unit_inr),
-        "FCF_Yield": percent_str(fcf_yield),
+        "FCF_Yield": percent_str(fcf_yield_n),
+
         "Beta": _safe_round(info.get("beta"), 2),
         "CurrentPrice": _safe_round(info.get("currentPrice") or latest["Close"], 2),
         "HighLow52W": f"{_safe_round(info.get('fiftyTwoWeekHigh'),2)} / {_safe_round(info.get('fiftyTwoWeekLow'),2)}" if info.get("fiftyTwoWeekHigh") and info.get("fiftyTwoWeekLow") else None,
@@ -401,23 +442,30 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "AsOf": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
-    # Fundamental Score/Flags
+    # --- Simple Fundamental Scoring/Flags (numeric-safe) ---
     flags = []
     score = 0
     max_score = 6
-    pe = info.get("trailingPE")
-    if pe is not None and pe > 0 and pe <= 20:
+
+    pe_n = to_float(info.get("trailingPE"))
+    if pe_n is not None and pe_n > 0 and pe_n <= 20:
         score += 1; flags.append("Reasonable P/E")
-    if roe is not None and roe >= 0.15:
+
+    if roe_n is not None and roe_n >= 0.15:
         score += 1; flags.append("High ROE (>=15%)")
-    if dte is not None and dte <= 150:
+
+    if dte_n is not None and dte_n <= 150:
         score += 1; flags.append("Moderate Leverage")
-    if pm is not None and pm >= 0.10:
+
+    if pm_n is not None and pm_n >= 0.10:
         score += 1; flags.append("Healthy Profit Margin")
-    if revg is not None and revg >= 0.10:
+
+    if revg_n is not None and revg_n >= 0.10:
         score += 1; flags.append("Strong Revenue Growth")
-    if fcf_yield is not None and fcf_yield >= 0.04:
+
+    if fcf_yield_n is not None and fcf_yield_n >= 0.04:
         score += 1; flags.append("Attractive FCF Yield")
+
     fundamentals["Score"] = f"{score}/{max_score} ({'Strong' if score>=4 else ('Moderate' if score>=2 else 'Weak')})"
     fundamentals["Flags"] = flags
 
@@ -663,7 +711,6 @@ def render_compare_view():
             )
         else:
             st.info("Install 'streamlit-aggrid' to enable pinned columns. Showing static table for now.")
-            # Format some numeric columns to 2-dec in static table
             for col in ["PE (TTM)","Price to Book","EV/EBITDA","Dividends","Debt to Equity","Current Price","Book Value"]:
                 if col in df_f.columns:
                     df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
