@@ -860,7 +860,7 @@ elif menu_option == "🔀 Compare Stocks":
     cmp_tickers = [_sanitize_ticker(t) for t in cmp_tickers]
     cmp_tickers = [t for t in cmp_tickers if t]
 
-       if st.button("🚀 Compare Now", use_container_width=True):
+    if st.button("🚀 Compare Now", use_container_width=True):
         if len(cmp_tickers) < 2 or len(cmp_tickers) > 10:
             st.warning("Please select 2 to 10 tickers for comparison.")
         else:
