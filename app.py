@@ -56,6 +56,15 @@ with st.sidebar:
     st.write("✉️ 247shivam@gmail.com")
     st.write("📱 +91-9468955596")
     st.markdown("---")
+    
+    # Navigation Menu
+    menu_option = st.radio(
+        "📑 Navigation",
+        ["Home - Stock Analysis", "🔥 Top Gainers & Losers", "🔀 Compare Stocks"],
+        index=0
+    )
+    
+    st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
     st.caption("Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
     st.markdown(DISCLAIMER_MD)
@@ -251,6 +260,65 @@ def screener_symbol_from_used(used_symbol: str) -> str:
         return ""
     return used_symbol.split(".")[0].upper()
 
+# ================= NEW: Top Gainers/Losers Fetcher =================
+@st.cache_data(show_spinner=False, ttl=300)
+def fetch_top_movers():
+    """
+    Fetch top 10 gainers and losers from NSE India website.
+    Returns: (gainers_df, losers_df)
+    """
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9'
+        }
+        
+        gainers_url = "https://www.nseindia.com/api/live-analysis-variations?index=gainers"
+        losers_url = "https://www.nseindia.com/api/live-analysis-variations?index=losers"
+        
+        session = requests.Session()
+        session.headers.update(headers)
+        
+        session.get("https://www.nseindia.com", timeout=10)
+        
+        gainers_response = session.get(gainers_url, timeout=10)
+        gainers_data = gainers_response.json()
+        
+        losers_response = session.get(losers_url, timeout=10)
+        losers_data = losers_response.json()
+        
+        gainers_list = []
+        if 'NIFTY' in gainers_data and gainers_data['NIFTY']:
+            for item in gainers_data['NIFTY'][:10]:
+                gainers_list.append({
+                    'Symbol': item.get('symbol', 'N/A'),
+                    'Company': item.get('meta', {}).get('companyName', 'N/A'),
+                    'Current Price (₹)': _safe_round(item.get('ltp', 0), 2),
+                    'Change (₹)': _safe_round(item.get('netPrice', 0), 2),
+                    'Change (%)': _safe_round(item.get('pChange', 0), 2)
+                })
+        
+        losers_list = []
+        if 'NIFTY' in losers_data and losers_data['NIFTY']:
+            for item in losers_data['NIFTY'][:10]:
+                losers_list.append({
+                    'Symbol': item.get('symbol', 'N/A'),
+                    'Company': item.get('meta', {}).get('companyName', 'N/A'),
+                    'Current Price (₹)': _safe_round(item.get('ltp', 0), 2),
+                    'Change (₹)': _safe_round(item.get('netPrice', 0), 2),
+                    'Change (%)': _safe_round(item.get('pChange', 0), 2)
+                })
+        
+        gainers_df = pd.DataFrame(gainers_list)
+        losers_df = pd.DataFrame(losers_list)
+        
+        return gainers_df, losers_df
+        
+    except Exception as e:
+        st.error(f"Error fetching top movers: {str(e)}")
+        return pd.DataFrame(), pd.DataFrame()
+
 # ================= Core: Technical + Fundamentals =================
 @st.cache_data(show_spinner=False, ttl=900)
 def super_technical_analysis(ticker: str, unit_inr="Cr"):
@@ -269,7 +337,7 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
     macd_ind = ta.trend.MACD(close=hist["Close"])
     hist["MACD"] = macd_ind.macd()
     hist["MACD_Signal"] = macd_ind.macd_signal()
-    hist["ATR"] = ta.volatility.AverageTrueRange(
+       hist["ATR"] = ta.volatility.AverageTrueRange(
         high=hist["High"], low=hist["Low"], close=hist["Close"], window=14
     ).average_true_range()
     hist["ADX"] = ta.trend.ADXIndicator(
@@ -515,47 +583,7 @@ try:
 except Exception:
     pass
 
-# ================= Sidebar: Compare feature (up to 10) =================
-with st.sidebar:
-    st.markdown("---")
-    st.markdown("#### 🔀 Compare (2–10 tickers)")
-    unit_inr_sidebar = "Cr" if unit_choice == "Crore" else "L"
-
-    if all_stock_codes:
-        cmp_sel = st.multiselect("Select tickers", all_stock_codes, max_selections=10)
-        cmp_input_text = st.text_input("Or type comma-separated (e.g., RELIANCE, TCS, INFY)", "")
-        cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()] if cmp_input_text.strip() else cmp_sel
-    else:
-        cmp_input_text = st.text_input("Enter tickers (comma-separated)", "RELIANCE, TCS")
-        cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
-
-    cmp_tickers = [_sanitize_ticker(t) for t in cmp_tickers]
-    cmp_tickers = [t for t in cmp_tickers if t]
-
-    if st.button("Get Compare Link (New Tab)"):
-        if len(cmp_tickers) < 2 or len(cmp_tickers) > 10:
-            st.warning("Please select 2 to 10 tickers.")
-        else:
-            qs = f"?mode=compare&tickers={','.join(cmp_tickers)}&unit={unit_inr_sidebar}"
-            st.markdown(f"<a href='{qs}' target='_blank'>Open Compare View ↗️</a>", unsafe_allow_html=True)
-
-# ================= UI: Input section (aligned button) =================
-try:
-    col_in1, col_in2 = st.columns([2, 1], vertical_alignment="bottom")
-except TypeError:
-    col_in1, col_in2 = st.columns([2, 1])
-
-with col_in1:
-    if all_stock_codes:
-        default_idx = all_stock_codes.index("RELIANCE") if "RELIANCE" in all_stock_codes else 0
-        user_input = st.selectbox("🔍 Search or select stock symbol:", all_stock_codes, index=default_idx)
-    else:
-        user_input = st.text_input("Enter stock symbol (e.g., RELIANCE, TCS, INFY, AAPL):", value="RELIANCE")
-
-with col_in2:
-    run_btn = st.button("Analyze 🚀", use_container_width=True)
-
-# ================= Compare View (via query params) =================
+# ================= Compare View (via query params or sidebar) =================
 def render_compare_view():
     qp = get_query_params()
     mode = (qp.get("mode") or "").lower()
@@ -729,127 +757,442 @@ def render_compare_view():
     st.markdown(DISCLAIMER_MD)
     return True
 
-# If compare mode via URL, render and stop
+# ================= MAIN APP LOGIC =================
+
+# Check if compare mode via URL
 if render_compare_view():
     st.stop()
 
-# ================= Run Single Ticker Analysis =================
-if run_btn:
-    company_name = symbol_to_name.get(user_input, "")
-    unit_inr = "Cr" if unit_choice == "Crore" else "L"
+# ================= Menu-based Navigation =================
+unit_inr = "Cr" if unit_choice == "Crore" else "L"
 
-    techs, funds, used, tried, hist = super_technical_analysis(user_input, unit_inr=unit_inr)
-
-    st.markdown(f"### 📈 Swing Trading Analysis - {company_name} ({user_input})")
-    if used and used != user_input:
-        st.caption(f"Used symbol: {used} (tried: {', '.join([t for t in tried if t])})")
-
-    if techs and hist is not None:
-        # Key Trade Highlights
-        st.subheader("🔎 Key Trade Highlights")
-        key_high_data = pd.DataFrame([{
-            "Candle Pattern": techs["CandlePattern"],
-            "Signal": techs["Signal"],
-            "Strength": techs["Strength"],
-            "Last Close": techs["Close"],
-            "RSI": techs["RSI"],
-            "ADX": techs["ADX"],
-            "ATR": techs["ATR"],
-            "Stoploss": techs["Stoploss"] if techs["Stoploss"] is not None else "NA",
-        }])
-        st.table(style_2dec(key_high_data))
-
-        fib = techs.get("Fibonacci_Targets", {}) or {}
-        fib_df = pd.DataFrame(list(fib.items()), columns=["Target", "Price"])
-        if not fib_df.empty:
-            st.markdown("#### 🎯 Fibonacci Targets")
-            st.table(style_2dec(fib_df))
-
-        # Detailed Technicals
-        st.subheader("📊 Detailed Technicals")
-        tech_df = pd.DataFrame([
-            ["Open", techs["Open"]],
-            ["High", techs["High"]],
-            ["Low", techs["Low"]],
-            ["Close", techs["Close"]],
-            ["Volume", techs["Volume"]],
-            ["EMA10", techs["EMA10"]],
-            ["EMA20", techs["EMA20"]],
-            ["RSI", techs["RSI"]],
-            ["MACD", techs["MACD"]],
-            ["MACD Signal", techs["MACD_Signal"]],
-            ["ATR", techs["ATR"]],
-            ["ADX", techs["ADX"]],
-            ["BB High", techs["BB_High"]],
-            ["BB Low", techs["BB_Low"]],
-            ["Pivot", techs["Pivot"]],
-            ["R1", techs["R1"]],
-            ["R2", techs["R2"]],
-            ["R3", techs["R3"]],
-            ["S1", techs["S1"]],
-            ["S2", techs["S2"]],
-            ["S3", techs["S3"]],
-        ], columns=["Metric","Value"])
-        tech_df["Value"] = tech_df["Value"].apply(
-            lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else (f"{int(v):,}" if isinstance(v, (int, np.integer)) else v)
-        )
-        tech_df.index = range(1, len(tech_df)+1)
-        st.dataframe(tech_df, use_container_width=True)
-
-        # Simple Price Chart
-        st.subheader("📉 Price Chart (6 months)")
-        chart_df = hist[["Close","EMA10","EMA20"]].copy()
-        chart_df.columns = ["Close","EMA10","EMA20"]
-        st.line_chart(chart_df, height=300, use_container_width=True)
-
-        # Support & Resistance Chart
-        st.subheader("🧱 Support & Resistance (Pivot) Chart")
-        fig = make_sr_chart(hist, techs, lookback=120)
-        if fig is not None:
-            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+# ---------- PAGE 1: TOP GAINERS & LOSERS ----------
+if menu_option == "🔥 Top Gainers & Losers":
+    st.markdown("## 🔥 Top 10 Gainers & Losers (NSE)")
+    st.caption("Data updates every 5 minutes. Last refresh at cache time.")
+    
+    if st.button("🔄 Refresh Data"):
+        st.cache_data.clear()
+        st.rerun()
+    
+    with st.spinner("Fetching top movers from NSE..."):
+        gainers_df, losers_df = fetch_top_movers()
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📈 Top 10 Gainers")
+        if not gainers_df.empty:
+            # Color code the dataframe
+            def color_positive(val):
+                if isinstance(val, (int, float)):
+                    color = 'green' if val > 0 else 'red'
+                    return f'color: {color}'
+                return ''
+            
+            styled_gainers = gainers_df.style.applymap(
+                color_positive, 
+                subset=['Change (₹)', 'Change (%)']
+            ).format({
+                'Current Price (₹)': '{:.2f}',
+                'Change (₹)': '{:.2f}',
+                'Change (%)': '{:.2f}%'
+            })
+            st.dataframe(styled_gainers, use_container_width=True, height=400)
         else:
-            st.warning("Plotly not installed. Install plotly to see the S/R candlestick chart.")
+            st.error("Unable to fetch gainers data. Please try again later.")
+    
+    with col2:
+        st.subheader("📉 Top 10 Losers")
+        if not losers_df.empty:
+            def color_negative(val):
+                if isinstance(val, (int, float)):
+                    color = 'red' if val < 0 else 'green'
+                    return f'color: {color}'
+                return ''
+            
+            styled_losers = losers_df.style.applymap(
+                color_negative, 
+                subset=['Change (₹)', 'Change (%)']
+            ).format({
+                'Current Price (₹)': '{:.2f}',
+                'Change (₹)': '{:.2f}',
+                'Change (%)': '{:.2f}%'
+            })
+            st.dataframe(styled_losers, use_container_width=True, height=400)
+        else:
+            st.error("Unable to fetch losers data. Please try again later.")
+    
+    # Quick analyze buttons
+    st.markdown("---")
+    st.markdown("### 🔍 Quick Analysis")
+    st.caption("Click on any symbol below to analyze it in detail")
+    
+    if not gainers_df.empty or not losers_df.empty:
+        all_symbols = []
+        if not gainers_df.empty:
+            all_symbols.extend(gainers_df['Symbol'].tolist()[:5])
+        if not losers_df.empty:
+            all_symbols.extend(losers_df['Symbol'].tolist()[:5])
+        
+        cols = st.columns(5)
+        for idx, symbol in enumerate(all_symbols[:10]):
+            with cols[idx % 5]:
+                if st.button(f"📊 {symbol}", key=f"analyze_{symbol}"):
+                    st.session_state['selected_stock'] = symbol
+                    st.session_state['menu_option'] = "Home - Stock Analysis"
+                    st.rerun()
+    
+    st.markdown(DISCLAIMER_MD)
 
+# ---------- PAGE 2: COMPARE STOCKS ----------
+elif menu_option == "🔀 Compare Stocks":
+    st.markdown("## 🔀 Compare Stocks (2-10 tickers)")
+    
+    if all_stock_codes:
+        cmp_sel = st.multiselect("Select tickers to compare:", all_stock_codes, max_selections=10)
+        cmp_input_text = st.text_input("Or type comma-separated (e.g., RELIANCE, TCS, INFY)", "")
+        cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()] if cmp_input_text.strip() else cmp_sel
     else:
-        st.error("❌ No technical data found. Tried: " + ", ".join([t for t in (tried or []) if t]))
+        cmp_input_text = st.text_input("Enter tickers (comma-separated)", "RELIANCE, TCS, INFY")
+        cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
 
-    # Fundamentals (trimmed display)
-    st.markdown(f"### 🏦 Fundamentals - {company_name} ({user_input})")
-    if funds:
-        f_score = funds.get("Score", "NA")
-        flags = funds.get("Flags", [])
-        st.write(f"Overall Score: {f_score}")
-        if flags:
-            st.write("Highlights: " + " • ".join(flags))
+    cmp_tickers = [_sanitize_ticker(t) for t in cmp_tickers]
+    cmp_tickers = [t for t in cmp_tickers if t]
 
-        exclude_keys = {"Score","Flags"}
-        fund_items = [(k, v) for k, v in funds.items() if k not in exclude_keys]
-        df_fund = pd.DataFrame(fund_items, columns=["Metric","Value"])
-        def fmt_val(x):
+       if st.button("🚀 Compare Now", use_container_width=True):
+        if len(cmp_tickers) < 2 or len(cmp_tickers) > 10:
+            st.warning("Please select 2 to 10 tickers for comparison.")
+        else:
+            tech_rows = []
+            fund_rows = []
+
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for idx, t in enumerate(cmp_tickers):
+                status_text.text(f"Analyzing {t}... ({idx+1}/{len(cmp_tickers)})")
+                progress_bar.progress((idx + 1) / len(cmp_tickers))
+                
+                techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_inr)
+                if not techs or hist is None:
+                    st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
+                    continue
+
+                scr_symbol = screener_symbol_from_used(used or t)
+                scr = screener_fundamentals(scr_symbol) if scr_symbol else {}
+
+                # Technical row
+                fib = techs.get("Fibonacci_Targets", {}) or {}
+                fib_str = ""
+                if fib:
+                    t1 = fib.get("Target1 (0.618)") or fib.get("Target1(0.618)")
+                    t2 = fib.get("Target2 (1.0)") or fib.get("Target2(1.0)")
+                    if t1 is not None: fib_str += f"T1: {float(t1):.2f}"
+                    if t2 is not None: fib_str += (", " if fib_str else "") + f"T2: {float(t2):.2f}"
+
+                tech_rows.append({
+                    "Ticker": used or t,
+                    "Company": funds.get("Company"),
+                    "Sector": funds.get("Sector"),
+                    "Industry": funds.get("Industry"),
+                    "Signal": techs["Signal"],
+                    "Strength": techs["Strength"],
+                    "Last Close": techs["Close"],
+                    "RSI": techs["RSI"],
+                    "Stoploss": techs["Stoploss"],
+                    "Fibonacci Targets": fib_str if fib_str else "NA",
+                    "Volume": techs["Volume"],
+                })
+
+                # Fundamentals row
+                row = {
+                    "Ticker": used or t,
+                    "Company": funds.get("Company"),
+                    "Sector": funds.get("Sector"),
+                    "Industry": funds.get("Industry"),
+                    "Market Cap": funds.get("MarketCap"),
+                    "Enterprise Value": funds.get("EnterpriseValue"),
+                    "PE (TTM)": funds.get("PE_TTM"),
+                    "Price to Book": funds.get("PriceToBook"),
+                    "EV/EBITDA": funds.get("EV_to_EBITDA"),
+                    "Stock P/E": scr.get("Stock P/E") or funds.get("PE_TTM"),
+                    "Dividends": funds.get("DividendRate"),
+                    "Dividend Yield": funds.get("DividendYield"),
+                    "Revenue Growth": funds.get("RevenueGrowth"),
+                    "Earnings Growth": funds.get("EarningsGrowth"),
+                    "Profit Margin": funds.get("ProfitMargin"),
+                    "Operating Margin": funds.get("OperatingMargin"),
+                    "Gross Margin": funds.get("GrossMargin"),
+                    "ROCE": scr.get("ROCE") or scr.get("ROCE 3Yr") or scr.get("Return on capital employed"),
+                    "Debt to Equity": funds.get("DebtToEquity"),
+                    "Total Debt": funds.get("TotalDebt"),
+                    "Total Cash": funds.get("TotalCash"),
+                    "Current Price": funds.get("CurrentPrice"),
+                    "High / Low": scr.get("High / Low") or funds.get("HighLow52W"),
+                    "Book Value": scr.get("Book Value") or funds.get("BookValue"),
+                }
+                fund_rows.append(row)
+
+            progress_bar.empty()
+            status_text.empty()
+
+            # Technical Comparison
+            if tech_rows:
+                st.subheader("📊 Technical Comparison")
+                df_t = pd.DataFrame(tech_rows)
+                if AGGRID_AVAILABLE:
+                    gb_t = GridOptionsBuilder.from_dataframe(df_t)
+                    gb_t.configure_default_column(resizable=True, filter=True, sortable=True, min_width=120)
+                    gb_t.configure_column("Ticker", pinned="left", width=110)
+                    gb_t.configure_column("Company", pinned="left", width=220)
+                    for col in ["Last Close","RSI","Stoploss"]:
+                        if col in df_t.columns:
+                            gb_t.configure_column(
+                                col, type=["numericColumn"],
+                                valueFormatter="value == null ? '' : Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                            )
+                    if "Volume" in df_t.columns:
+                        gb_t.configure_column(
+                            "Volume", type=["numericColumn"],
+                            valueFormatter="value == null ? '' : Number(value).toLocaleString()"
+                        )
+                    gb_t.configure_grid_options(domLayout="normal")
+                    grid_options_t = gb_t.build()
+                    AgGrid(
+                        df_t, gridOptions=grid_options_t, theme="balham",
+                        fit_columns_on_grid_load=False, allow_unsafe_jscode=True,
+                        update_mode=GridUpdateMode.NO_UPDATE, height=420
+                    )
+                else:
+                    for col in ["Last Close","RSI","Stoploss"]:
+                        if col in df_t.columns:
+                            df_t[col] = df_t[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+                    if "Volume" in df_t.columns:
+                        df_t["Volume"] = df_t["Volume"].apply(lambda v: f"{int(v):,}" if v is not None else "NA")
+                    st.dataframe(df_t, use_container_width=True)
+
+            # Fundamentals Comparison
+            if fund_rows:
+                st.subheader("🏦 Fundamentals Comparison")
+                keep_cols = [
+                    "Ticker", "Company", "Sector", "Industry",
+                    "Market Cap", "Enterprise Value",
+                    "PE (TTM)", "Price to Book", "EV/EBITDA", "Stock P/E",
+                    "Dividends", "Dividend Yield",
+                    "Revenue Growth", "Earnings Growth", "Profit Margin", "Operating Margin", "Gross Margin", "ROCE",
+                    "Debt to Equity", "Total Debt", "Total Cash",
+                    "Current Price", "High / Low", "Book Value"
+                ]
+                df_f = pd.DataFrame(fund_rows)
+                for c in keep_cols:
+                    if c not in df_f.columns:
+                        df_f[c] = None
+                df_f = df_f[keep_cols]
+
+                if AGGRID_AVAILABLE:
+                    gb = GridOptionsBuilder.from_dataframe(df_f)
+                    gb.configure_default_column(resizable=True, filter=True, sortable=True, min_width=120)
+                    gb.configure_column("Ticker", pinned="left", width=110)
+                    gb.configure_column("Company", pinned="left", width=220)
+                    num_cols = ["PE (TTM)", "Price to Book", "EV/EBITDA", "Dividends", "Debt to Equity", "Current Price", "Book Value"]
+                    for col in num_cols:
+                        if col in df_f.columns:
+                            gb.configure_column(
+                                col, type=["numericColumn"],
+                                valueFormatter="value == null ? '' : Number(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})"
+                            )
+                    gb.configure_grid_options(domLayout="normal")
+                    grid_options = gb.build()
+                    AgGrid(
+                        df_f, gridOptions=grid_options, theme="balham",
+                        fit_columns_on_grid_load=False, allow_unsafe_jscode=True,
+                        update_mode=GridUpdateMode.NO_UPDATE, height=480
+                    )
+                else:
+                    for col in ["PE (TTM)","Price to Book","EV/EBITDA","Dividends","Debt to Equity","Current Price","Book Value"]:
+                        if col in df_f.columns:
+                            df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+                    st.dataframe(df_f, use_container_width=True)
+
+            # Normalized performance chart
+            st.subheader("📈 Normalized Performance (Rebased to 100)")
+            perf = {}
+            for t in cmp_tickers:
+                techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_inr)
+                if hist is not None and not hist.empty:
+                    c = hist["Close"].astype(float).dropna()
+                    if len(c) > 0:
+                        perf[used or t] = (c / c.iloc[0]) * 100.0
+            if perf:
+                norm_df = pd.DataFrame(perf)
+                st.line_chart(norm_df, height=350, use_container_width=True)
+
+    st.markdown(DISCLAIMER_MD)
+
+# ---------- PAGE 3: HOME - STOCK ANALYSIS (DEFAULT) ----------
+else:  # "Home - Stock Analysis"
+    
+    # Check if stock was selected from Gainers/Losers page
+    if 'selected_stock' in st.session_state:
+        default_stock = st.session_state['selected_stock']
+        del st.session_state['selected_stock']
+    else:
+        default_stock = "RELIANCE"
+    
+    # UI: Input section
+    try:
+        col_in1, col_in2 = st.columns([2, 1], vertical_alignment="bottom")
+    except TypeError:
+        col_in1, col_in2 = st.columns([2, 1])
+
+    with col_in1:
+        if all_stock_codes:
             try:
-                if isinstance(x, (int, float, np.floating)):
-                    return f"{float(x):,.2f}"
-                return x
-            except:
-                return x
-        df_fund["Value"] = df_fund["Value"].apply(fmt_val)
-        df_fund.index = range(1, len(df_fund)+1)
-        st.dataframe(df_fund, use_container_width=True)
+                default_idx = all_stock_codes.index(default_stock)
+            except ValueError:
+                default_idx = all_stock_codes.index("RELIANCE") if "RELIANCE" in all_stock_codes else 0
+            user_input = st.selectbox("🔍 Search or select stock symbol:", all_stock_codes, index=default_idx)
+        else:
+            user_input = st.text_input("Enter stock symbol (e.g., RELIANCE, TCS, INFY, AAPL):", value=default_stock)
+
+    with col_in2:
+        run_btn = st.button("Analyze 🚀", use_container_width=True)
+
+    # Run Analysis
+    if run_btn:
+        company_name = symbol_to_name.get(user_input, "")
+
+        with st.spinner(f"Analyzing {user_input}..."):
+            techs, funds, used, tried, hist = super_technical_analysis(user_input, unit_inr=unit_inr)
+
+        st.markdown(f"### 📈 Swing Trading Analysis - {company_name} ({user_input})")
+        if used and used != user_input:
+            st.caption(f"Used symbol: {used} (tried: {', '.join([t for t in tried if t])})")
+
+        if techs and hist is not None:
+            # Key Trade Highlights
+            st.subheader("🔎 Key Trade Highlights")
+            key_high_data = pd.DataFrame([{
+                "Candle Pattern": techs["CandlePattern"],
+                "Signal": techs["Signal"],
+                "Strength": techs["Strength"],
+                "Last Close": techs["Close"],
+                "RSI": techs["RSI"],
+                "ADX": techs["ADX"],
+                "ATR": techs["ATR"],
+                "Stoploss": techs["Stoploss"] if techs["Stoploss"] is not None else "NA",
+            }])
+            st.table(style_2dec(key_high_data))
+
+            fib = techs.get("Fibonacci_Targets", {}) or {}
+            fib_df = pd.DataFrame(list(fib.items()), columns=["Target", "Price"])
+            if not fib_df.empty:
+                st.markdown("#### 🎯 Fibonacci Targets")
+                st.table(style_2dec(fib_df))
+
+            # Detailed Technicals
+            st.subheader("📊 Detailed Technicals")
+            tech_df = pd.DataFrame([
+                ["Open", techs["Open"]],
+                ["High", techs["High"]],
+                ["Low", techs["Low"]],
+                ["Close", techs["Close"]],
+                ["Volume", techs["Volume"]],
+                ["EMA10", techs["EMA10"]],
+                ["EMA20", techs["EMA20"]],
+                ["RSI", techs["RSI"]],
+                ["MACD", techs["MACD"]],
+                ["MACD Signal", techs["MACD_Signal"]],
+                ["ATR", techs["ATR"]],
+                ["ADX", techs["ADX"]],
+                ["BB High", techs["BB_High"]],
+                ["BB Low", techs["BB_Low"]],
+                ["Pivot", techs["Pivot"]],
+                ["R1", techs["R1"]],
+                ["R2", techs["R2"]],
+                ["R3", techs["R3"]],
+                ["S1", techs["S1"]],
+                ["S2", techs["S2"]],
+                ["S3", techs["S3"]],
+            ], columns=["Metric","Value"])
+            tech_df["Value"] = tech_df["Value"].apply(
+                lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else (f"{int(v):,}" if isinstance(v, (int, np.integer)) else v)
+            )
+            tech_df.index = range(1, len(tech_df)+1)
+            st.dataframe(tech_df, use_container_width=True)
+
+            # Simple Price Chart
+            st.subheader("📉 Price Chart (6 months)")
+            chart_df = hist[["Close","EMA10","EMA20"]].copy()
+            chart_df.columns = ["Close","EMA10","EMA20"]
+            st.line_chart(chart_df, height=300, use_container_width=True)
+
+            # Support & Resistance Chart
+            st.subheader("🧱 Support & Resistance (Pivot) Chart")
+            fig = make_sr_chart(hist, techs, lookback=120)
+            if fig is not None:
+                st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+            else:
+                st.warning("Plotly not installed. Install plotly to see the S/R candlestick chart.")
+
+              else:
+            st.error("❌ No technical data found. Tried: " + ", ".join([t for t in (tried or []) if t]))
+
+        # Fundamentals (trimmed display)
+        st.markdown(f"### 🏦 Fundamentals - {company_name} ({user_input})")
+        if funds:
+            f_score = funds.get("Score", "NA")
+            flags = funds.get("Flags", [])
+            st.write(f"**Overall Score:** {f_score}")
+            if flags:
+                st.write("**Highlights:** " + " • ".join(flags))
+
+            exclude_keys = {"Score","Flags"}
+            fund_items = [(k, v) for k, v in funds.items() if k not in exclude_keys]
+            df_fund = pd.DataFrame(fund_items, columns=["Metric","Value"])
+            def fmt_val(x):
+                try:
+                    if isinstance(x, (int, float, np.floating)):
+                        return f"{float(x):,.2f}"
+                    return x
+                except:
+                    return x
+            df_fund["Value"] = df_fund["Value"].apply(fmt_val)
+            df_fund.index = range(1, len(df_fund)+1)
+            st.dataframe(df_fund, use_container_width=True)
+        else:
+            st.warning("No yfinance fundamentals available for this ticker.")
+
+        # Screener snapshot
+        st.markdown(f"### 📄 Screener.in Snapshot - {company_name} ({user_input})")
+        with st.spinner("Fetching Screener.in data..."):
+            scr = screener_fundamentals(user_input)
+        if scr:
+            df_scr = pd.DataFrame(list(scr.items()), columns=["Metric","Value"])
+            df_scr.index = range(1, len(df_scr)+1)
+            st.dataframe(df_scr, use_container_width=True)
+        else:
+            st.info("Could not fetch Screener.in data (might not exist for this symbol or network blocked).")
+
+        st.markdown(DISCLAIMER_MD)
+
     else:
-        st.warning("No yfinance fundamentals available for this ticker.")
+        st.info("Select a symbol and click **Analyze 🚀** to get started")
+        
+        # Show quick links to popular stocks
+        st.markdown("### 🔥 Popular Stocks")
+        st.caption("Click to analyze quickly")
+        
+        popular_stocks = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "TATAMOTORS", "WIPRO", "LT", "AXISBANK"]
+        
+        cols = st.columns(5)
+        for idx, stock in enumerate(popular_stocks):
+            with cols[idx % 5]:
+                if st.button(f"📊 {stock}", key=f"quick_{stock}"):
+                    st.session_state['selected_stock'] = stock
+                    st.rerun()
+        
+        st.markdown(DISCLAIMER_MD)
 
-    # Screener snapshot
-    st.markdown(f"### 📄 Screener.in Snapshot - {company_name} ({user_input})")
-    scr = screener_fundamentals(user_input)
-    if scr:
-        df_scr = pd.DataFrame(list(scr.items()), columns=["Metric","Value"])
-        df_scr.index = range(1, len(df_scr)+1)
-        st.dataframe(df_scr, use_container_width=True)
-    else:
-        st.info("Could not fetch Screener.in data (might not exist for this symbol or network blocked).")
-
-    st.markdown(DISCLAIMER_MD)
-
-else:
-    st.info("Select a symbol and click Analyze 🚀")
-    st.markdown(DISCLAIMER_MD)
+# ================= END OF CODE =================
