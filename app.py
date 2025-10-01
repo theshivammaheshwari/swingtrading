@@ -23,14 +23,6 @@ try:
 except Exception:
     AGGRID_AVAILABLE = False
 
-# Shared requests session for yfinance (reduces rate-limit hits by reusing cookies/crumb)
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-})
-
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
 st.markdown("""
@@ -212,11 +204,11 @@ def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
     for suf in suffixes:
         sym = t if suf == "" else f"{t}{suf}"
         tried.append(sym)
-        stock = yf.Ticker(sym, session=SESSION)
+        stock = yf.Ticker(sym)  # don't pass custom session (fixes YFDataException)
         hist = get_history_safe(stock, period=period, interval=interval)
         if not hist.empty:
             return stock, hist, sym, tried
-    return yf.Ticker(t, session=SESSION), pd.DataFrame(), None, tried
+    return yf.Ticker(t), pd.DataFrame(), None, tried
 
 def _get_info(stock):
     for getter in ("info", "get_info"):
