@@ -7,7 +7,7 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
-from nsepy import get_quote
+
 
 # Optional Plotly import (fallback safe if missing)
 PLOTLY_AVAILABLE = True
