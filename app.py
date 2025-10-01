@@ -807,85 +807,166 @@ if render_compare_view():
 # ================= Menu-based Navigation =================
 unit_inr = "Cr" if unit_choice == "Crore" else "L"
 
-# ---------- PAGE 1: TOP GAINERS & LOSERS ----------
+# ---------- PAGE 1: TOP GAINERS & LOSERS (ENHANCED) ----------
 if menu_option == "🔥 Top Gainers & Losers":
-    st.markdown("## 🔥 Top 10 Gainers & Losers (NSE)")
-    st.caption("Data updates every 5 minutes. Last refresh at cache time.")
     
-    if st.button("🔄 Refresh Data"):
-        st.cache_data.clear()
-        st.rerun()
+    # Header section
+    st.markdown("""
+        <div style='background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
+                    padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
+            <h1 style='color: white; text-align: center; margin: 0;'>
+                🔥 Top 10 Gainers & Losers (NIFTY 50)
+            </h1>
+        </div>
+    """, unsafe_allow_html=True)
     
-    with st.spinner("Fetching top movers from NSE..."):
+    # Control section
+    col_refresh, col_time, col_info = st.columns([1, 2, 2])
+    with col_refresh:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+    with col_time:
+        st.markdown(f"**📅 Updated:** {datetime.now().strftime('%d-%b-%Y %I:%M %p')}")
+    with col_info:
+        st.markdown("**📊 Source:** Yahoo Finance (5-min cache)")
+    
+    # Fetch data
+    with st.spinner("Fetching live market data..."):
         gainers_df, losers_df = fetch_top_movers()
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📈 Top 10 Gainers")
-        if not gainers_df.empty:
-            # Color code the dataframe
-            def color_positive(val):
-                if isinstance(val, (int, float)):
-                    color = 'green' if val > 0 else 'red'
-                    return f'color: {color}'
-                return ''
-            
-            styled_gainers = gainers_df.style.applymap(
-                color_positive, 
-                subset=['Change (₹)', 'Change (%)']
-            ).format({
-                'Current Price (₹)': '{:.2f}',
-                'Change (₹)': '{:.2f}',
-                'Change (%)': '{:.2f}%'
-            })
-            st.dataframe(styled_gainers, use_container_width=True, height=400)
-        else:
-            st.error("Unable to fetch gainers data. Please try again later.")
-    
-    with col2:
-        st.subheader("📉 Top 10 Losers")
-        if not losers_df.empty:
-            def color_negative(val):
-                if isinstance(val, (int, float)):
-                    color = 'red' if val < 0 else 'green'
-                    return f'color: {color}'
-                return ''
-            
-            styled_losers = losers_df.style.applymap(
-                color_negative, 
-                subset=['Change (₹)', 'Change (%)']
-            ).format({
-                'Current Price (₹)': '{:.2f}',
-                'Change (₹)': '{:.2f}',
-                'Change (%)': '{:.2f}%'
-            })
-            st.dataframe(styled_losers, use_container_width=True, height=400)
-        else:
-            st.error("Unable to fetch losers data. Please try again later.")
-    
-    # Quick analyze buttons
+    # ========== TOP 10 GAINERS ==========
     st.markdown("---")
-    st.markdown("### 🔍 Quick Analysis")
-    st.caption("Click on any symbol below to analyze it in detail")
+    st.markdown("### 📈 Top 10 Gainers")
     
-    if not gainers_df.empty or not losers_df.empty:
-        all_symbols = []
-        if not gainers_df.empty:
-            all_symbols.extend(gainers_df['Symbol'].tolist()[:5])
-        if not losers_df.empty:
-            all_symbols.extend(losers_df['Symbol'].tolist()[:5])
+    if not gainers_df.empty:
+        # Add rank column
+        gainers_display = gainers_df.copy()
+        gainers_display.insert(0, 'Rank', ['🥇', '🥈', '🥉'] + list(range(4, 11)))
         
-        cols = st.columns(5)
-        for idx, symbol in enumerate(all_symbols[:10]):
-            with cols[idx % 5]:
-                if st.button(f"📊 {symbol}", key=f"analyze_{symbol}"):
-                    st.session_state['selected_stock'] = symbol
-                    st.session_state['menu_option'] = "Home - Stock Analysis"
-                    st.rerun()
+        # Apply styling
+        def highlight_gainers(row):
+            styles = [''] * len(row)
+            if row.name < 3:  # Top 3
+                styles = ['background-color: #fff9c4'] * len(row)
+            return styles
+        
+        styled_gainers = gainers_display.style.apply(highlight_gainers, axis=1).format({
+            'Current Price (₹)': '₹{:.2f}',
+            'Change (₹)': lambda x: f'+₹{x:.2f}' if x > 0 else f'₹{x:.2f}',
+            'Change (%)': lambda x: f'+{x:.2f}%' if x > 0 else f'{x:.2f}%'
+        })
+        
+        # Display table
+        st.dataframe(styled_gainers, use_container_width=True, height=420)
+        
+        # Stats row
+        col_stat1, col_stat2, col_stat3, col_download1 = st.columns([1, 1, 1, 1])
+        with col_stat1:
+            st.success(f"**Highest Gain:** {gainers_df['Change (%)'].max():.2f}%")
+        with col_stat2:
+            st.info(f"**Avg Gain:** {gainers_df['Change (%)'].mean():.2f}%")
+        with col_stat3:
+            st.warning(f"**Total Stocks:** {len(gainers_df)}")
+        with col_download1:
+            csv_gainers = gainers_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 CSV",
+                data=csv_gainers,
+                file_name=f"gainers_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+    else:
+        st.error("❌ Unable to fetch gainers data")
+    
+    # ========== TOP 10 LOSERS ==========
+    st.markdown("---")
+    st.markdown("### 📉 Top 10 Losers")
+    
+    if not losers_df.empty:
+        # Add rank column
+        losers_display = losers_df.copy()
+        losers_display.insert(0, 'Rank', list(range(1, 11)))
+        
+        # Apply styling
+        def highlight_losers(row):
+            styles = [''] * len(row)
+            if row.name < 3:  # Top 3
+                styles = ['background-color: #ffcdd2'] * len(row)
+            return styles
+        
+        styled_losers = losers_display.style.apply(highlight_losers, axis=1).format({
+            'Current Price (₹)': '₹{:.2f}',
+            'Change (₹)': lambda x: f'{x:.2f}' if x < 0 else f'+{x:.2f}',
+            'Change (%)': lambda x: f'{x:.2f}%' if x < 0 else f'+{x:.2f}%'
+        })
+        
+        # Display table
+        st.dataframe(styled_losers, use_container_width=True, height=420)
+        
+        # Stats row
+        col_stat1, col_stat2, col_stat3, col_download2 = st.columns([1, 1, 1, 1])
+        with col_stat1:
+            st.error(f"**Highest Loss:** {losers_df['Change (%)'].min():.2f}%")
+        with col_stat2:
+            st.info(f"**Avg Loss:** {losers_df['Change (%)'].mean():.2f}%")
+        with col_stat3:
+            st.warning(f"**Total Stocks:** {len(losers_df)}")
+        with col_download2:
+            csv_losers = losers_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 CSV",
+                data=csv_losers,
+                file_name=f"losers_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+    else:
+        st.error("❌ Unable to fetch losers data")
+    
+    # ========== MARKET OVERVIEW ==========
+    if not gainers_df.empty and not losers_df.empty:
+        st.markdown("---")
+        st.markdown("### 📊 Market Overview")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            top_gainer = gainers_df.iloc[0]
+            st.metric(
+                label="🏆 Best Performer",
+                value=top_gainer['Symbol'],
+                delta=f"{top_gainer['Change (%)']}%",
+                delta_color="normal"
+            )
+        
+        with col2:
+            top_loser = losers_df.iloc[0]
+            st.metric(
+                label="⚠️ Worst Performer",
+                value=top_loser['Symbol'],
+                delta=f"{top_loser['Change (%)']}%",
+                delta_color="inverse"
+            )
+        
+        with col3:
+            total_volume_gain = gainers_df['Change (%)'].sum()
+            st.metric(
+                label="📈 Total Gains",
+                value=f"{total_volume_gain:.2f}%",
+                delta="Combined"
+            )
+        
+        with col4:
+            total_volume_loss = losers_df['Change (%)'].sum()
+            st.metric(
+                label="📉 Total Losses",
+                value=f"{total_volume_loss:.2f}%",
+                delta="Combined"
+            )
     
     st.markdown(DISCLAIMER_MD)
-
 # ---------- PAGE 2: COMPARE STOCKS ----------
 elif menu_option == "🔀 Compare Stocks":
     st.markdown("## 🔀 Compare Stocks (2-10 tickers)")
