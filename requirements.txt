@@ -7,3 +7,4 @@ requests
 matplotlib
 plotly>=5.17,<6
 streamlit-aggrid
+numpy
