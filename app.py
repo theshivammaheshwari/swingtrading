@@ -31,42 +31,31 @@ st.markdown("""
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
-st.markdown("""
-    <style>
-    div.stButton > button { width: 100%; margin-top: 0.55rem; }
-    th, td { white-space: nowrap; }
-    </style>
-""", unsafe_allow_html=True)
 
-# ========== AMAZON AFFILIATE BANNER (Ready to Use) ==========
-def amazon_affiliate_banner():
-    """Amazon Affiliate Banner with your credentials"""
-    banner_html = """
-    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #FF9900 0%, #FFB84D 100%); border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-        <p style="color: white; font-size: 14px; margin-bottom: 15px; font-weight: bold;">
-            📚 Recommended: Top Stock Market & Trading Books
-        </p>
-        <div style="background: white; padding: 15px; border-radius: 8px; display: inline-block;">
-            <iframe sandbox="allow-popups allow-scripts allow-modals allow-forms allow-same-origin" 
-                    style="width:728px;height:90px;" 
-                    marginwidth="0" 
-                    marginheight="0" 
-                    scrolling="no" 
-                    frameborder="0" 
-                    src="//ws-in.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&OneJS=1&Operation=GetAdHtml&MarketPlace=IN&source=ss&ref=as_ss_li_til&ad_type=product_link&tracking_id=shivam0a3-21&language=en_IN&marketplace=amazon&region=IN&placement=B07XJ8C8F6&asins=B07XJ8C8F6,B08CKF3SV5,B01N6TQVJB,B07DJ1Y8KC&linkId=4gUoFCc&show_border=true&link_opens_in_new_window=true">
-            </iframe>
+# ========== AMAZON NATIVE AD (Your Code) ==========
+def amazon_native_ad():
+    """Amazon Native Ad - 728x90 Banner"""
+    ad_html = """
+    <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <p style="font-size: 11px; color: #999; margin-bottom: 10px; font-weight: 600;">Advertisement</p>
+        <div style="display: inline-block;">
+            <script type="text/javascript" language="javascript">
+                var aax_size='728x90';
+                var aax_pubname = 'shivam0a3-21';
+                var aax_src='302';
+            </script>
+            <script type="text/javascript" language="javascript" src="https://c.amazon-adsystem.com/aax2/assoc.js"></script>
         </div>
-        <p style="color: white; font-size: 10px; margin-top: 10px; opacity: 0.9;">
+        <p style="font-size: 9px; color: #666; margin-top: 8px;">
             As an Amazon Associate, we earn from qualifying purchases
         </p>
     </div>
     """
-    components.html(banner_html, height=200)
+    components.html(ad_html, height=150, scrolling=False)
 
-# Display banner before title
-amazon_affiliate_banner()
+# Display ad before title
+amazon_native_ad()
 # ========== END AMAZON AD ==========
-
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
 # ================= Disclaimer (bilingual) =================
