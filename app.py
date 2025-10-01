@@ -33,6 +33,70 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
+# ========== LIVE INDICES WITH CACHE ==========
+@st.cache_data(ttl=120, show_spinner=False)
+def fetch_indices():
+    results = []
+    indices = [
+        ("^NSEI", "📊 NIFTY 50"),
+        ("^NSEBANK", "🏦 BANK NIFTY"),
+        ("^BSESN", "📈 SENSEX")
+    ]
+    
+    for symbol, name in indices:
+        try:
+            ticker = yf.Ticker(symbol)
+            hist = ticker.history(period="5d")
+            
+            if len(hist) >= 2:
+                curr = float(hist['Close'].iloc[-1])
+                prev = float(hist['Close'].iloc[-2])
+                chg = curr - prev
+                chg_pct = (chg / prev) * 100
+                
+                results.append({
+                    'name': name,
+                    'price': curr,
+                    'change': chg,
+                    'change_pct': chg_pct
+                })
+        except:
+            pass
+    
+    return results
+
+# Display indices
+try:
+    data = fetch_indices()
+    
+    if data:
+        cols = st.columns(len(data) + 1)
+        
+        for i, idx in enumerate(data):
+            with cols[i]:
+                st.metric(
+                    idx['name'],
+                    f"₹{idx['price']:,.2f}",
+                    f"{idx['change']:+.2f} ({idx['change_pct']:+.2f}%)"
+                )
+        
+        with cols[-1]:
+            st.write("")
+            if st.button("🔄 Refresh"):
+                st.cache_data.clear()
+                st.rerun()
+        
+        st.markdown("---")
+    else:
+        st.info("📊 Indices loading...")
+        st.markdown("---")
+        
+except Exception as e:
+    st.warning("⚠️ Indices temporarily unavailable")
+    st.markdown("---")
+# ========== END INDICES ==========
+
+
 # ================= Disclaimer (bilingual) =================
 DISCLAIMER_MD = """
 ---
