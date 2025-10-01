@@ -263,110 +263,100 @@ def screener_symbol_from_used(used_symbol: str) -> str:
 
 # ================= NEW: Top Gainers/Losers Fetcher =================
 @st.cache_data(show_spinner=False, ttl=300)
-def fetch_top_movers_nsepy():
+def fetch_top_movers():
     """
-    Fetch top gainers and losers using NSEPy and web scraping
+    Fetch top 10 gainers and losers from Nifty 50 using Yahoo Finance
+    No extra dependencies needed!
     """
     try:
-        # Method 1: Web scraping from NSE India
-        import requests
-        from bs4 import BeautifulSoup
+        # Nifty 50 stocks
+        nifty50_symbols = [
+            "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "HINDUNILVR.NS",
+            "ICICIBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS",
+            "ITC.NS", "ASIANPAINT.NS", "AXISBANK.NS", "LT.NS", "DMART.NS",
+            "SUNPHARMA.NS", "TITAN.NS", "ULTRACEMCO.NS", "NESTLEIND.NS", "WIPRO.NS",
+            "MARUTI.NS", "HCLTECH.NS", "TATAMOTORS.NS", "M&M.NS", "NTPC.NS",
+            "BAJAJFINSV.NS", "TECHM.NS", "POWERGRID.NS", "ONGC.NS", "ADANIPORTS.NS",
+            "TATASTEEL.NS", "HDFCLIFE.NS", "COALINDIA.NS", "JSWSTEEL.NS", "GRASIM.NS",
+            "HINDALCO.NS", "INDUSINDBK.NS", "BRITANNIA.NS", "SHREECEM.NS", "DIVISLAB.NS",
+            "DRREDDY.NS", "EICHERMOT.NS", "APOLLOHOSP.NS", "CIPLA.NS", "UPL.NS",
+            "SBILIFE.NS", "BAJAJ-AUTO.NS", "HEROMOTOCO.NS", "TATACONSUM.NS", "BPCL.NS"
+        ]
         
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Connection': 'keep-alive',
-        }
+        data_list = []
+        failed_count = 0
         
-        session = requests.Session()
+        # Use columns for better progress display
+        prog_col1, prog_col2 = st.columns([3, 1])
+        with prog_col1:
+            progress_bar = st.progress(0)
+        with prog_col2:
+            progress_text = st.empty()
         
-        # Get gainers
-        gainers_url = "https://www.nseindia.com/market-data/live-equity-market?symbol=nifty%2050"
-        session.get("https://www.nseindia.com", headers=headers, timeout=10)
-        
-        # Alternative: Use MoneyControl
-        gainers_url = "https://www.moneycontrol.com/stocks/marketstats/nsegainer1/index.php"
-        losers_url = "https://www.moneycontrol.com/stocks/marketstats/nseloser1/index.php"
-        
-        # Fetch gainers
-        gainers_response = session.get(gainers_url, headers=headers, timeout=10)
-        gainers_soup = BeautifulSoup(gainers_response.text, 'html.parser')
-        
-        # Fetch losers
-        losers_response = session.get(losers_url, headers=headers, timeout=10)
-        losers_soup = BeautifulSoup(losers_response.text, 'html.parser')
-        
-        # Parse gainers table
-        gainers_list = []
-        gainers_table = gainers_soup.find('table', class_='tbldata14')
-        if gainers_table:
-            rows = gainers_table.find_all('tr')[1:11]  # Skip header, get top 10
-            for row in rows:
-                cols = row.find_all('td')
-                if len(cols) >= 5:
-                    symbol_tag = cols[0].find('a')
-                    symbol = symbol_tag.text.strip() if symbol_tag else cols[0].text.strip()
-                    company = cols[0].get('title', symbol)
-                    ltp = cols[1].text.strip().replace(',', '')
-                    change = cols[2].text.strip().replace(',', '')
-                    change_pct = cols[3].text.strip().replace('%', '')
+        for idx, symbol in enumerate(nifty50_symbols):
+            try:
+                progress_text.text(f"{idx+1}/{len(nifty50_symbols)}")
+                progress_bar.progress((idx + 1) / len(nifty50_symbols))
+                
+                ticker = yf.Ticker(symbol)
+                
+                # Get last 2 days data
+                hist = ticker.history(period="5d")
+                
+                if len(hist) >= 2:
+                    current_price = hist['Close'].iloc[-1]
+                    prev_price = hist['Close'].iloc[-2]
+                    change = current_price - prev_price
+                    change_pct = (change / prev_price) * 100
                     
-                    try:
-                        gainers_list.append({
-                            'Symbol': symbol,
-                            'Company': company,
-                            'Current Price (₹)': float(ltp) if ltp else 0,
-                            'Change (₹)': float(change) if change else 0,
-                            'Change (%)': float(change_pct) if change_pct else 0
-                        })
-                    except:
-                        continue
-        
-        # Parse losers table
-        losers_list = []
-        losers_table = losers_soup.find('table', class_='tbldata14')
-        if losers_table:
-            rows = losers_table.find_all('tr')[1:11]  # Skip header, get top 10
-            for row in rows:
-                cols = row.find_all('td')
-                if len(cols) >= 5:
-                    symbol_tag = cols[0].find('a')
-                    symbol = symbol_tag.text.strip() if symbol_tag else cols[0].text.strip()
-                    company = cols[0].get('title', symbol)
-                    ltp = cols[1].text.strip().replace(',', '')
-                    change = cols[2].text.strip().replace(',', '')
-                    change_pct = cols[3].text.strip().replace('%', '')
+                    # Get company name
+                    info = ticker.info
+                    company_name = info.get('longName', info.get('shortName', symbol.replace('.NS', '')))
                     
-                    try:
-                        losers_list.append({
-                            'Symbol': symbol,
-                            'Company': company,
-                            'Current Price (₹)': float(ltp) if ltp else 0,
-                            'Change (₹)': float(change) if change else 0,
-                            'Change (%)': float(change_pct) if change_pct else 0
-                        })
-                    except:
-                        continue
+                    data_list.append({
+                        'Symbol': symbol.replace('.NS', ''),
+                        'Company': company_name,
+                        'Current Price (₹)': _safe_round(current_price, 2),
+                        'Change (₹)': _safe_round(change, 2),
+                        'Change (%)': _safe_round(change_pct, 2)
+                    })
+                else:
+                    failed_count += 1
+                    
+            except Exception as e:
+                failed_count += 1
+                continue
         
-        gainers_df = pd.DataFrame(gainers_list)
-        losers_df = pd.DataFrame(losers_list)
+        progress_bar.empty()
+        progress_text.empty()
         
-        # Format the values
-        if not gainers_df.empty:
-            gainers_df['Current Price (₹)'] = gainers_df['Current Price (₹)'].apply(lambda x: _safe_round(x, 2))
-            gainers_df['Change (₹)'] = gainers_df['Change (₹)'].apply(lambda x: _safe_round(x, 2))
-            gainers_df['Change (%)'] = gainers_df['Change (%)'].apply(lambda x: _safe_round(x, 2))
+        if not data_list:
+            st.error("❌ Could not fetch any stock data. Please check your internet connection.")
+            return pd.DataFrame(), pd.DataFrame()
         
-        if not losers_df.empty:
-            losers_df['Current Price (₹)'] = losers_df['Current Price (₹)'].apply(lambda x: _safe_round(x, 2))
-            losers_df['Change (₹)'] = losers_df['Change (₹)'].apply(lambda x: _safe_round(x, 2))
-            losers_df['Change (%)'] = losers_df['Change (%)'].apply(lambda x: _safe_round(x, 2))
+        if failed_count > 0:
+            st.warning(f"⚠️ Could not fetch data for {failed_count} stocks")
+        
+        # Create DataFrame
+        df = pd.DataFrame(data_list)
+        
+        # Sort by change percentage
+        df_sorted = df.sort_values('Change (%)', ascending=False)
+        
+        # Top 10 gainers
+        gainers_df = df_sorted.head(10).reset_index(drop=True)
+        gainers_df.index = range(1, len(gainers_df) + 1)
+        
+        # Top 10 losers
+        losers_df = df_sorted.tail(10).reset_index(drop=True)
+        losers_df = losers_df.sort_values('Change (%)').reset_index(drop=True)
+        losers_df.index = range(1, len(losers_df) + 1)
         
         return gainers_df, losers_df
         
     except Exception as e:
-        st.error(f"Error fetching top movers: {str(e)}")
+        st.error(f"❌ Error fetching top movers: {str(e)}")
+        st.info("💡 Tip: Try refreshing the page or check your internet connection")
         return pd.DataFrame(), pd.DataFrame()
 
 
