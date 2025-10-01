@@ -33,53 +33,71 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
-# ========== MARKET INDICES DISPLAY (ADD HERE) ==========
+# ========== MARKET INDICES DISPLAY (IMPROVED) ==========
 try:
-    indices_data = fetch_market_indices()
+    with st.spinner("Loading market indices..."):
+        indices_data = fetch_market_indices()
     
-    # Create columns for indices
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-    
-    # NIFTY 50
-    with col1:
-        nifty = indices_data[0]
-        st.metric(
-            label="📊 NIFTY 50",
-            value=f"₹{nifty['price']:,.2f}",
-            delta=f"{nifty['change']:+.2f} ({nifty['change_pct']:+.2f}%)",
-            delta_color="normal"
-        )
-    
-    # BANK NIFTY
-    with col2:
-        banknifty = indices_data[1]
-        st.metric(
-            label="🏦 BANK NIFTY",
-            value=f"₹{banknifty['price']:,.2f}",
-            delta=f"{banknifty['change']:+.2f} ({banknifty['change_pct']:+.2f}%)",
-            delta_color="normal"
-        )
-    
-    # SENSEX
-    with col3:
-        sensex = indices_data[2]
-        st.metric(
-            label="📈 SENSEX",
-            value=f"₹{sensex['price']:,.2f}",
-            delta=f"{sensex['change']:+.2f} ({sensex['change_pct']:+.2f}%)",
-            delta_color="normal"
-        )
-    
-    # Auto-refresh indicator
-    with col4:
-        st.info(f"🔄 **Auto-refresh**\n\nEvery 60 seconds")
-    
-    st.markdown("---")
-    
+    # Check if data is valid
+    if indices_data and len(indices_data) >= 3:
+        st.markdown("### 📊 Live Market Indices")
+        
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 0.8])
+        
+        # NIFTY 50
+        with col1:
+            nifty = indices_data[0]
+            if nifty['price'] > 0:
+                st.metric(
+                    label="📊 NIFTY 50",
+                    value=f"₹{nifty['price']:,.2f}",
+                    delta=f"{nifty['change']:+.2f} ({nifty['change_pct']:+.2f}%)",
+                    delta_color="normal"
+                )
+            else:
+                st.warning("NIFTY data unavailable")
+        
+        # BANK NIFTY
+        with col2:
+            banknifty = indices_data[1]
+            if banknifty['price'] > 0:
+                st.metric(
+                    label="🏦 BANK NIFTY",
+                    value=f"₹{banknifty['price']:,.2f}",
+                    delta=f"{banknifty['change']:+.2f} ({banknifty['change_pct']:+.2f}%)",
+                    delta_color="normal"
+                )
+            else:
+                st.warning("BANK NIFTY data unavailable")
+        
+        # SENSEX
+        with col3:
+            sensex = indices_data[2]
+            if sensex['price'] > 0:
+                st.metric(
+                    label="📈 SENSEX",
+                    value=f"₹{sensex['price']:,.2f}",
+                    delta=f"{sensex['change']:+.2f} ({sensex['change_pct']:+.2f}%)",
+                    delta_color="normal"
+                )
+            else:
+                st.warning("SENSEX data unavailable")
+        
+        # Refresh info
+        with col4:
+            st.info(f"🔄 Auto-refresh\n\nEvery 60 sec")
+            if st.button("🔁 Refresh Now"):
+                st.cache_data.clear()
+                st.rerun()
+        
+        st.markdown("---")
+    else:
+        st.info("⏳ Market indices loading... Please wait or refresh page.")
+        
 except Exception as e:
-    st.warning("⚠️ Unable to load market indices. Refresh page to retry.")
+    st.error(f"⚠️ Error loading market data: {str(e)}")
+    st.caption("This might happen during market closed hours or network issues.")
 # ========== END MARKET INDICES ==========
-
 # ================= Disclaimer (bilingual) =================
 DISCLAIMER_MD = """
 ---
