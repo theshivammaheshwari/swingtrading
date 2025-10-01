@@ -32,71 +32,43 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== SINGLE PRODUCT AD ==========
-def amazon_featured_product():
-    """Featured Amazon product as ad banner"""
-    product_ad = """
-    <div style="background: linear-gradient(135deg, #FF9900 0%, #FFD700 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-        <div style="display: flex; align-items: center; gap: 20px; background: white; padding: 20px; border-radius: 10px;">
-            
-            <!-- Product Image -->
-            <div style="flex: 0 0 auto;">
-                <a href="https://amzn.to/3WhUueF" target="_blank">
-                    <img src="https://m.media-amazon.com/images/I/71VYazLksqL._SY466_.jpg" 
-                         width="150" 
-                         style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.3s;"
-                         onmouseover="this.style.transform='scale(1.05)'"
-                         onmouseout="this.style.transform='scale(1)'">
-                </a>
+# ========== GOOGLE ADSENSE - FINAL VERSION ==========
+def google_adsense_banner():
+    """Google AdSense - 728x90 Banner"""
+    ad_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background: transparent;">
+        <div style="text-align: center; padding: 20px 10px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size: 11px; color: #999; margin: 0 0 12px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                Advertisement
+            </p>
+            <div style="display: inline-block; min-height: 90px;">
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9925469493511043"
+                     crossorigin="anonymous"></script>
+                <!-- trading247 -->
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:728px;height:90px"
+                     data-ad-client="ca-pub-9925469493511043"
+                     data-ad-slot="7734016441"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
             </div>
-            
-            <!-- Product Details -->
-            <div style="flex: 1;">
-                <div style="background: #FF9900; color: white; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px;">
-                    📚 RECOMMENDED
-                </div>
-                <h3 style="margin: 8px 0; font-size: 20px; color: #333;">
-                    The Intelligent Investor
-                </h3>
-                <p style="margin: 5px 0; font-size: 14px; color: #666;">
-                    by Benjamin Graham
-                </p>
-                <p style="margin: 10px 0; font-size: 13px; color: #555; line-height: 1.6;">
-                    The definitive book on value investing. A must-read for every stock market investor.
-                </p>
-                <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
-                    <div style="font-size: 24px; color: #B12704; font-weight: bold;">
-                        ₹599
-                    </div>
-                    <a href="https://amzn.to/3WhUueF" 
-                       target="_blank" 
-                       style="background: #FF9900; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.3s;"
-                       onmouseover="this.style.background='#E88B00'; this.style.transform='translateY(-2px)'"
-                       onmouseout="this.style.background='#FF9900'; this.style.transform='translateY(0)'">
-                        Buy on Amazon →
-                    </a>
-                </div>
-                <div style="margin-top: 12px;">
-                    <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 8px;">
-                        ⭐ 4.5/5 Rating
-                    </span>
-                    <span style="background: #fff3e0; color: #e65100; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">
-                        🔥 Bestseller
-                    </span>
-                </div>
-            </div>
-            
         </div>
-        <p style="text-align: center; color: white; font-size: 10px; margin-top: 12px; opacity: 0.9;">
-            As an Amazon Associate, we earn from qualifying purchases
-        </p>
-    </div>
+    </body>
+    </html>
     """
-    components.html(product_ad, height=260)
+    components.html(ad_html, height=160, scrolling=False)
 
-# Display before title
-amazon_featured_product()
-# ========== END AD ==========
+# Display ad
+google_adsense_banner()
+# ========== END ADSENSE ==========
+
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
 # ================= Disclaimer (bilingual) =================
