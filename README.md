@@ -49,7 +49,60 @@ Clone the repo:
 ```bash
 git clone https://github.com/<your-username>/trading247.git
 cd trading247
-Create a virtual environment & install dependencies:
+```
+
+Create a virtual environment & install dependencies:  
+```bash
 pip install -r requirements.txt
-Run the app locally:
+```
+
+Run the app locally:  
+```bash
 streamlit run app.py
+```
+
+---
+
+## ⚙️ Dependencies  
+
+- streamlit  
+- yfinance  
+- ta (technical indicators)  
+- pandas, numpy  
+- beautifulsoup4, requests  
+- plotly *(optional, for charts)*  
+- streamlit-aggrid *(optional, for interactive tables)*  
+
+---
+
+## 📸 Screenshots  
+
+🔍 **Single Stock Analysis**  
+- Key trade highlights with signals, stoploss, Fibonacci targets  
+- Technical charts with support/resistance  
+- Fundamentals overview  
+
+📊 **Multi-Stock Comparison**  
+- Compare up to 10 stocks  
+- Technical + fundamental comparison tables  
+- Normalized performance line chart  
+
+---
+
+## ⚠️ Disclaimer  
+
+This project is for **educational & portfolio purposes only**.  
+It does **NOT** constitute financial, trading, or investment advice.  
+Always consult a **SEBI-registered financial advisor** before making investment decisions.  
+
+---
+
+## 👨‍💻 Developer Info  
+
+**Shivam Maheshwari**  
+
+- 🔗 [LinkedIn](https://www.linkedin.com/in/theshivammaheshwari)  
+- 📸 [Instagram](https://www.instagram.com/theshivammaheshwari)  
+- 📘 [Facebook](https://www.facebook.com/theshivammaheshwari)  
+- ✉️ 247shivam@gmail.com  
+- 📱 +91-9468955596  
