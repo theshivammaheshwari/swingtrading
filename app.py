@@ -10,6 +10,14 @@ from datetime import datetime
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
+st.markdown("""
+    <style>
+    /* Make buttons full width and nudge down slightly to align with selectbox */
+    div.stButton > button { width: 100%; margin-top: 0.55rem; }
+    /* Compact table headers */
+    th, td { white-space: nowrap; }
+    </style>
+""", unsafe_allow_html=True)
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
 # ---------------- Sidebar: Developer + Settings ----------------
@@ -23,7 +31,7 @@ with st.sidebar:
     st.write("📱 +91-9468955596")
     st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
-    st.caption("Note: Non-INR values will show as K/M/B/T")
+    st.caption("Note: Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
 
 # ================= Helpers =================
 def _safe_round(x, n=2):
@@ -101,14 +109,17 @@ def format_big_value(x, currency, unit_for_inr="Cr", decimals=2):
     elif ax >= 1e3:
         val, suf = x / 1e3, "K"
     else:
-        return _safe_round(x, 2)
-    return f"{_safe_round(val, decimals)}{suf}"
+        return f"{_safe_round(x, 2):.2f}"
+    return f"{_safe_round(val, decimals):.2f}{suf}"
+
+def style_2dec(df):
+    # Format all numeric values to two decimals (with thousands comma)
+    return df.style.format(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v).hide(axis="index")
 
 # ================= Data: yfinance with .NS/.BO fallback =================
 def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
     t = _sanitize_ticker(ticker)
     tried = []
-    # If suffix already provided, try only raw; else try raw + NSE + BSE
     suffixes = [""] if any(t.endswith(s) for s in [".NS", ".BO", ".NSE", ".BSE"]) else ["", ".NS", ".BO"]
     for suf in suffixes:
         sym = t if suf == "" else f"{t}{suf}"
@@ -120,7 +131,6 @@ def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
     return yf.Ticker(t), pd.DataFrame(), None, tried
 
 def _get_info(stock):
-    # robust info fetch for different yfinance versions
     for getter in ("info", "get_info"):
         try:
             obj = getattr(stock, getter)
@@ -176,11 +186,11 @@ def screener_fundamentals(stock_code):
 def super_technical_analysis(ticker: str, unit_inr="Cr"):
     stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period="6mo", interval="1d")
     if hist.empty:
-        return None, None, used_ticker, tried
+        return None, None, used_ticker, tried, None
 
     hist = hist.dropna(subset=["Open", "High", "Low", "Close"]).copy()
     if hist.shape[0] < 30:
-        return None, None, used_ticker, tried
+        return None, None, used_ticker, tried, None
 
     # Indicators
     hist["EMA10"] = hist["Close"].ewm(span=10).mean()
@@ -326,11 +336,11 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "Currency": currency,
         "MarketCap": format_big_value(market_cap, currency, unit_for_inr=unit_inr),
         "EnterpriseValue": format_big_value(enterprise_val, currency, unit_for_inr=unit_inr),
-        "PE_TTM": info.get("trailingPE"),
-        "Forward_PE": info.get("forwardPE"),
-        "PEG": info.get("pegRatio"),
-        "PriceToBook": info.get("priceToBook"),
-        "EV_to_EBITDA": info.get("enterpriseToEbitda"),
+        "PE_TTM": _safe_round(info.get("trailingPE"), 2),
+        "Forward_PE": _safe_round(info.get("forwardPE"), 2),
+        "PEG": _safe_round(info.get("pegRatio"), 2),
+        "PriceToBook": _safe_round(info.get("priceToBook"), 2),
+        "EV_to_EBITDA": _safe_round(info.get("enterpriseToEbitda"), 2),
         "DividendYield_%": _pct(info.get("dividendYield")),
         "PayoutRatio_%": _pct(info.get("payoutRatio")),
         "RevenueGrowth_%": _pct(revg),
@@ -340,14 +350,14 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "GrossMargin_%": _pct(info.get("grossMargins")),
         "ROE_%": _pct(roe),
         "ROA_%": _pct(info.get("returnOnAssets")),
-        "DebtToEquity": dte,
-        "CurrentRatio": info.get("currentRatio"),
-        "QuickRatio": info.get("quickRatio"),
+        "DebtToEquity": _safe_round(dte, 2),
+        "CurrentRatio": _safe_round(info.get("currentRatio"), 2),
+        "QuickRatio": _safe_round(info.get("quickRatio"), 2),
         "TotalDebt": format_big_value(total_debt, currency, unit_for_inr=unit_inr),
         "TotalCash": format_big_value(total_cash, currency, unit_for_inr=unit_inr),
         "FreeCashFlow": format_big_value(free_cf, currency, unit_for_inr=unit_inr),
         "FCF_Yield_%": _pct(fcf_yield),
-        "Beta": info.get("beta"),
+        "Beta": _safe_round(info.get("beta"), 2),
         "AsOf": datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
     }
 
@@ -382,19 +392,25 @@ try:
     all_stock_codes = symbols_df["Symbol"].dropna().astype(str).tolist()
     symbol_to_name = dict(zip(symbols_df["Symbol"], symbols_df["NAME OF COMPANY"]))
 except Exception:
-    pass  # if not available, we’ll use text input
+    pass  # fallback to text input if file not present
 
-# ================= UI: Input section =================
-col_in1, col_in2 = st.columns([2,1])
+# ================= UI: Input section (aligned button + 2-dec display) =================
+try:
+    col_in1, col_in2 = st.columns([2, 1], vertical_alignment="bottom")
+except TypeError:
+    col_in1, col_in2 = st.columns([2, 1])
+
 with col_in1:
     if all_stock_codes:
-        user_input = st.selectbox("🔍 Search or select stock symbol:", all_stock_codes, index=all_stock_codes.index("RELIANCE") if "RELIANCE" in all_stock_codes else 0)
+        default_idx = all_stock_codes.index("RELIANCE") if "RELIANCE" in all_stock_codes else 0
+        user_input = st.selectbox("🔍 Search or select stock symbol:", all_stock_codes, index=default_idx)
     else:
         user_input = st.text_input("Enter stock symbol (e.g., RELIANCE, TCS, INFY, AAPL):", value="RELIANCE")
 
 with col_in2:
     run_btn = st.button("Analyze 🚀", use_container_width=True)
 
+# ================= Run Analysis =================
 if run_btn:
     company_name = symbol_to_name.get(user_input, "")
     unit_inr = "Cr" if unit_choice == "Crore" else "L"
@@ -403,34 +419,33 @@ if run_btn:
 
     st.markdown(f"### 📈 Swing Trading Analysis - {company_name} ({user_input})")
     if used and used != user_input:
-        st.caption(f"Used symbol: {used} (fallback from: {', '.join([t for t in tried if t])})")
+        st.caption(f"Used symbol: {used} (tried: {', '.join([t for t in tried if t])})")
 
     if techs and hist is not None:
         # -------- Key Trade Highlights + Fibonacci Targets --------
         st.subheader("🔎 Key Trade Highlights")
-        c1, c2 = st.columns([1.4, 1.1])
 
-        with c1:
-            key_high_data = pd.DataFrame([{
-                "Candle Pattern": techs["CandlePattern"],
-                "Signal": techs["Signal"],
-                "Strength": techs["Strength"],
-                "Last Close": techs["Close"],
-                "RSI": techs["RSI"],
-                "ADX": techs["ADX"],
-                "ATR": techs["ATR"],
-                "Stoploss": techs["Stoploss"] if techs["Stoploss"] else "NA",
-            }])
-            st.table(key_high_data.style.hide(axis="index"))
+        # Highlights table (2-dec formatting)
+        key_high_data = pd.DataFrame([{
+            "Candle Pattern": techs["CandlePattern"],
+            "Signal": techs["Signal"],
+            "Strength": techs["Strength"],
+            "Last Close": techs["Close"],
+            "RSI": techs["RSI"],
+            "ADX": techs["ADX"],
+            "ATR": techs["ATR"],
+            "Stoploss": techs["Stoploss"] if techs["Stoploss"] is not None else "NA",
+        }])
+        st.table(style_2dec(key_high_data))
 
-        with c2:
-            fib = techs.get("Fibonacci_Targets", {}) or {}
-            fib_df = pd.DataFrame(list(fib.items()), columns=["Target", "Price"])
-            if not fib_df.empty:
-                st.markdown("#### 🎯 Fibonacci Targets")
-                st.table(fib_df.style.hide(axis="index"))
+        # Fibonacci targets (2-dec formatting)
+        fib = techs.get("Fibonacci_Targets", {}) or {}
+        fib_df = pd.DataFrame(list(fib.items()), columns=["Target", "Price"])
+        if not fib_df.empty:
+            st.markdown("#### 🎯 Fibonacci Targets")
+            st.table(style_2dec(fib_df))
 
-        # -------- Detailed Technicals --------
+        # -------- Detailed Technicals (2-dec formatting) --------
         st.subheader("📊 Detailed Technicals")
         tech_df = pd.DataFrame([
             ["Open", techs["Open"]],
@@ -447,19 +462,18 @@ if run_btn:
             ["ADX", techs["ADX"]],
             ["BB High", techs["BB_High"]],
             ["BB Low", techs["BB_Low"]],
+            ["Pivot", techs["Pivot"]],
+            ["R1", techs["R1"]],
+            ["R2", techs["R2"]],
+            ["R3", techs["R3"]],
+            ["S1", techs["S1"]],
+            ["S2", techs["S2"]],
+            ["S3", techs["S3"]],
         ], columns=["Metric","Value"])
+        # Format to 2 decimals for display
+        tech_df["Value"] = tech_df["Value"].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v)
         tech_df.index = range(1, len(tech_df)+1)
         st.dataframe(tech_df, use_container_width=True)
-
-        # -------- Pivot Levels --------
-        piv_df = pd.DataFrame({
-            "Level":["Pivot","R1","R2","R3","S1","S2","S3"],
-            "Value":[techs["Pivot"],techs["R1"],techs["R2"],techs["R3"],
-                     techs["S1"],techs["S2"],techs["S3"]]
-        })
-        piv_df.index = range(1, len(piv_df)+1)
-        st.subheader("🧭 Pivot Levels")
-        st.dataframe(piv_df.style.background_gradient(cmap="Blues"), use_container_width=True)
 
         # -------- Price Chart --------
         st.subheader("📉 Price Chart (6 months)")
@@ -473,23 +487,31 @@ if run_btn:
     # -------- Fundamentals (yfinance) --------
     st.markdown(f"### 🏦 Fundamentals - {company_name} ({user_input})")
     if funds:
-        # Score and Flags first
         f_score = funds.get("Score", "NA")
         flags = funds.get("Flags", [])
         st.write(f"Overall Score: {f_score}")
         if flags:
             st.write("Highlights: " + " • ".join(flags))
 
-        # Show fundamentals key-value
         exclude_keys = {"Score","Flags"}
         fund_items = [(k, v) for k, v in funds.items() if k not in exclude_keys]
         df_fund = pd.DataFrame(fund_items, columns=["Metric","Value"])
+        # 2-dec format for numeric-like values where appropriate (skip strings like '12,345.67 Cr')
+        def fmt_val(x):
+            try:
+                # Convert only plain numerics; pass strings like '1,234.56 Cr'
+                if isinstance(x, (int, float, np.floating)):
+                    return f"{float(x):,.2f}"
+                return x
+            except:
+                return x
+        df_fund["Value"] = df_fund["Value"].apply(fmt_val)
         df_fund.index = range(1, len(df_fund)+1)
-        st.dataframe(df_fund.style.background_gradient(cmap="Oranges"), use_container_width=True)
+        st.dataframe(df_fund, use_container_width=True)
     else:
         st.warning("No yfinance fundamentals available for this ticker.")
 
-    # -------- Screener.in Fundamentals (optional) --------
+    # -------- Screener.in Fundamentals (optional snapshot) --------
     st.markdown(f"### 📄 Screener.in Snapshot - {company_name} ({user_input})")
     scr = screener_fundamentals(user_input)
     if scr:
