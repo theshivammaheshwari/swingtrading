@@ -49,3 +49,7 @@ Clone the repo:
 ```bash
 git clone https://github.com/<your-username>/trading247.git
 cd trading247
+Create a virtual environment & install dependencies:
+pip install -r requirements.txt
+Run the app locally:
+streamlit run app.py
