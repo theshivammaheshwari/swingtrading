@@ -7,6 +7,7 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
+import plotly.graph_objects as go
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
@@ -14,7 +15,6 @@ st.markdown("""
     <style>
     /* Make buttons full width and nudge down slightly to align with selectbox */
     div.stButton > button { width: 100%; margin-top: 0.55rem; }
-    /* Compact table headers */
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
@@ -31,7 +31,7 @@ with st.sidebar:
     st.write("📱 +91-9468955596")
     st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
-    st.caption("Note: Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
+    st.caption("Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
 
 # ================= Helpers =================
 def _safe_round(x, n=2):
@@ -98,7 +98,6 @@ def format_big_value(x, currency, unit_for_inr="Cr", decimals=2):
         return None
     if (currency or "").upper() == "INR":
         return format_inr_value(x, unit=unit_for_inr, decimals=decimals)
-    # non-INR: humanize
     ax = abs(float(x))
     if ax >= 1e12:
         val, suf = x / 1e12, "T"
@@ -113,7 +112,6 @@ def format_big_value(x, currency, unit_for_inr="Cr", decimals=2):
     return f"{_safe_round(val, decimals):.2f}{suf}"
 
 def style_2dec(df):
-    # Format all numeric values to two decimals (with thousands comma)
     return df.style.format(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v).hide(axis="index")
 
 # ================= Data: yfinance with .NS/.BO fallback =================
@@ -297,8 +295,8 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         "MACD_Signal": _safe_round(latest["MACD_Signal"], 2),
         "ATR": _safe_round(atr_val, 2),
         "ADX": _safe_round(latest["ADX"], 2),
-        "BB_High": _safe_round(latest["BB_high"], 2),
-        "BB_Low": _safe_round(latest["BB_low"], 2),
+        "BB_High": _safe_round(hist["BB_high"].iloc[-1], 2),
+        "BB_Low": _safe_round(hist["BB_low"].iloc[-1], 2),
         "CandlePattern": candle_signal,
         "Signal": final_signal,
         "Strength": strength,
@@ -384,6 +382,59 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
 
     return tech, fundamentals, used_ticker, tried, hist
 
+# ================= Support/Resistance (Pivot) Chart =================
+def make_sr_chart(hist: pd.DataFrame, techs: dict, lookback: int = 120) -> go.Figure:
+    df = hist.tail(lookback).copy()
+    df["Date"] = df.index
+    fig = go.Figure()
+
+    # Candlestick
+    fig.add_trace(go.Candlestick(
+        x=df["Date"], open=df["Open"], high=df["High"], low=df["Low"], close=df["Close"],
+        name="OHLC", increasing_line_color="#2ca02c", decreasing_line_color="#d62728", showlegend=False
+    ))
+
+    # EMA overlays
+    fig.add_trace(go.Scatter(x=df["Date"], y=df["EMA10"], name="EMA10", line=dict(color="#1f77b4", width=1.5)))
+    fig.add_trace(go.Scatter(x=df["Date"], y=df["EMA20"], name="EMA20", line=dict(color="#ff7f0e", width=1.5)))
+
+    # Pivot lines
+    levels = [("S3", "#2ca02c"), ("S2", "#2ca02c"), ("S1", "#2ca02c"),
+              ("Pivot", "#7f7f7f"),
+              ("R1", "#d62728"), ("R2", "#d62728"), ("R3", "#d62728")]
+    shapes, annotations = [], []
+    x0, x1 = df["Date"].iloc[0], df["Date"].iloc[-1]
+    y_min = df["Low"].min()
+    y_max = df["High"].max()
+
+    for name, color in levels:
+        y = techs.get(name)
+        if y is None:
+            continue
+        shapes.append(dict(type="line", xref="x", yref="y",
+                           x0=x0, x1=x1, y0=y, y1=y,
+                           line=dict(color=color, width=1, dash="dot")))
+        annotations.append(dict(
+            x=x1, y=y, xref="x", yref="y",
+            text=f"{name}: {y:.2f}", showarrow=False,
+            font=dict(size=10, color=color),
+            bgcolor="rgba(255,255,255,0.6)"
+        ))
+        y_min = min(y_min, y)
+        y_max = max(y_max, y)
+
+    fig.update_layout(
+        template="plotly_white",
+        margin=dict(l=10, r=10, t=30, b=10),
+        height=450,
+        xaxis_rangeslider_visible=False,
+        shapes=shapes,
+        annotations=annotations,
+        legend=dict(orientation="h", y=1.02, x=0)
+    )
+    fig.update_yaxes(tickformat=".2f", range=[y_min * 0.98, y_max * 1.02])
+    return fig
+
 # ================= Data Source: NSE stock list (optional) =================
 symbol_to_name = {}
 all_stock_codes = []
@@ -392,9 +443,9 @@ try:
     all_stock_codes = symbols_df["Symbol"].dropna().astype(str).tolist()
     symbol_to_name = dict(zip(symbols_df["Symbol"], symbols_df["NAME OF COMPANY"]))
 except Exception:
-    pass  # fallback to text input if file not present
+    pass
 
-# ================= UI: Input section (aligned button + 2-dec display) =================
+# ================= UI: Input section (aligned button) =================
 try:
     col_in1, col_in2 = st.columns([2, 1], vertical_alignment="bottom")
 except TypeError:
@@ -424,8 +475,6 @@ if run_btn:
     if techs and hist is not None:
         # -------- Key Trade Highlights + Fibonacci Targets --------
         st.subheader("🔎 Key Trade Highlights")
-
-        # Highlights table (2-dec formatting)
         key_high_data = pd.DataFrame([{
             "Candle Pattern": techs["CandlePattern"],
             "Signal": techs["Signal"],
@@ -438,14 +487,13 @@ if run_btn:
         }])
         st.table(style_2dec(key_high_data))
 
-        # Fibonacci targets (2-dec formatting)
         fib = techs.get("Fibonacci_Targets", {}) or {}
         fib_df = pd.DataFrame(list(fib.items()), columns=["Target", "Price"])
         if not fib_df.empty:
             st.markdown("#### 🎯 Fibonacci Targets")
             st.table(style_2dec(fib_df))
 
-        # -------- Detailed Technicals (2-dec formatting) --------
+        # -------- Detailed Technicals --------
         st.subheader("📊 Detailed Technicals")
         tech_df = pd.DataFrame([
             ["Open", techs["Open"]],
@@ -470,16 +518,20 @@ if run_btn:
             ["S2", techs["S2"]],
             ["S3", techs["S3"]],
         ], columns=["Metric","Value"])
-        # Format to 2 decimals for display
         tech_df["Value"] = tech_df["Value"].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v)
         tech_df.index = range(1, len(tech_df)+1)
         st.dataframe(tech_df, use_container_width=True)
 
-        # -------- Price Chart --------
+        # -------- Price Chart (simple) --------
         st.subheader("📉 Price Chart (6 months)")
         chart_df = hist[["Close","EMA10","EMA20"]].copy()
         chart_df.columns = ["Close","EMA10","EMA20"]
-        st.line_chart(chart_df, height=350, use_container_width=True)
+        st.line_chart(chart_df, height=300, use_container_width=True)
+
+        # -------- Support & Resistance (Pivot) Chart --------
+        st.subheader("🧱 Support & Resistance (Pivot) Chart")
+        fig = make_sr_chart(hist, techs, lookback=120)
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
     else:
         st.error("❌ No technical data found. Tried: " + ", ".join([t for t in (tried or []) if t]))
@@ -496,10 +548,8 @@ if run_btn:
         exclude_keys = {"Score","Flags"}
         fund_items = [(k, v) for k, v in funds.items() if k not in exclude_keys]
         df_fund = pd.DataFrame(fund_items, columns=["Metric","Value"])
-        # 2-dec format for numeric-like values where appropriate (skip strings like '12,345.67 Cr')
         def fmt_val(x):
             try:
-                # Convert only plain numerics; pass strings like '1,234.56 Cr'
                 if isinstance(x, (int, float, np.floating)):
                     return f"{float(x):,.2f}"
                 return x
