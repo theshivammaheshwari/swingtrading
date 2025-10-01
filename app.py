@@ -7,7 +7,7 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
-
+import streamlit.components.v1 as components
 
 # Optional Plotly import (fallback safe if missing)
 PLOTLY_AVAILABLE = True
@@ -25,6 +25,57 @@ except Exception:
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
+
+st.markdown("""
+    <style>
+    div.stButton > button { width: 100%; margin-top: 0.55rem; }
+    th, td { white-space: nowrap; }
+    
+    /* Ad container styling */
+    .ad-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .ad-container {
+            padding: 10px;
+            overflow-x: auto;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ========== GOOGLE ADSENSE BANNER ==========
+def display_google_ad():
+    """Display Google AdSense - 728x90 Banner"""
+    ad_html = """
+    <div class="ad-container">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9925469493511043"
+             crossorigin="anonymous"></script>
+        <!-- trading247 -->
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:728px;height:90px"
+             data-ad-client="ca-pub-9925469493511043"
+             data-ad-slot="7734016441"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    """
+    components.html(ad_html, height=130, scrolling=False)
+
+# Display ad before title
+display_google_ad()
+# ========== END ADSENSE ==========
+
+
 st.markdown("""
     <style>
     div.stButton > button { width: 100%; margin-top: 0.55rem; }
