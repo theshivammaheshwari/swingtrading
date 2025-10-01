@@ -254,7 +254,7 @@ def screener_symbol_from_used(used_symbol: str) -> str:
 # ================= Core: Technical + Fundamentals =================
 @st.cache_data(show_spinner=False, ttl=900)
 def super_technical_analysis(ticker: str, unit_inr="Cr"):
-    stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period="2mo", interval="1d")
+    stock, hist, used_ticker, tried = _get_ticker_with_fallback(ticker, period="3mo", interval="1d")
     if hist.empty:
         return None, None, used_ticker, tried, None
 
