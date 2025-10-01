@@ -58,7 +58,6 @@ with st.sidebar:
     st.write("📱 +91-9468955596")
     st.markdown("---")
     
-    # Navigation Menu
     menu_option = st.radio(
         "📑 Navigation",
         ["Home - Stock Analysis", "🔥 Top Gainers & Losers", "🔀 Compare Stocks"],
@@ -68,6 +67,47 @@ with st.sidebar:
     st.markdown("---")
     unit_choice = st.radio("INR big values unit:", ["Crore", "Lakh"], index=0, horizontal=True)
     st.caption("Non-INR values show as K/M/B/T. All numbers display with 2 decimals.")
+    
+    # ========== INDICES WITH METRICS ==========
+    st.markdown("---")
+    st.markdown("### 📊 Market Indices")
+    
+    @st.cache_data(ttl=120, show_spinner=False)
+    def fetch_idx():
+        r = []
+        for s, n in [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]:
+            try:
+                t = yf.Ticker(s)
+                h = t.history(period="5d")
+                if len(h) >= 2:
+                    c, p = float(h['Close'].iloc[-1]), float(h['Close'].iloc[-2])
+                    chg, chgp = c-p, ((c-p)/p)*100
+                    r.append({'name': n, 'price': c, 'change': chg, 'pct': chgp})
+            except:
+                pass
+        return r
+    
+    try:
+        data = fetch_idx()
+        if data:
+            for idx in data:
+                st.metric(
+                    label=idx['name'],
+                    value=f"₹{idx['price']:,.0f}",
+                    delta=f"{idx['change']:+.0f} ({idx['pct']:+.2f}%)"
+                )
+            
+            if st.button("🔄 Refresh", use_container_width=True, key="refresh_indices"):
+                st.cache_data.clear()
+                st.rerun()
+            
+            st.caption("🕐 Auto: 2 min")
+        else:
+            st.info("Loading...")
+    except:
+        st.warning("Unavailable")
+    # ========== END ==========
+    
     st.markdown(DISCLAIMER_MD)
 
 # ================= Helpers =================
