@@ -7,7 +7,13 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
-import plotly.graph_objects as go
+
+# Optional Plotly import (fallback safe if missing)
+PLOTLY_AVAILABLE = True
+try:
+    import plotly.graph_objects as go
+except Exception:
+    PLOTLY_AVAILABLE = False
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
@@ -62,7 +68,7 @@ def _sanitize_ticker(t):
 
 def indian_comma_format(number, decimals=2):
     try:
-        neg = number < 0
+        neg = float(number) < 0
         number = abs(float(number))
         s = f"{number:.{decimals}f}"
         if "." in s:
@@ -113,6 +119,21 @@ def format_big_value(x, currency, unit_for_inr="Cr", decimals=2):
 
 def style_2dec(df):
     return df.style.format(lambda v: f"{float(v):,.2f}" if isinstance(v, (int, float, np.floating)) else v).hide(axis="index")
+
+# Query params helpers
+def get_query_params():
+    try:
+        return dict(st.query_params)
+    except Exception:
+        return {k: v[0] if isinstance(v, list) and v else v for k, v in st.experimental_get_query_params().items()}
+
+def set_query_params(**kwargs):
+    try:
+        st.query_params.clear()
+        for k, v in kwargs.items():
+            st.query_params[k] = v
+    except Exception:
+        st.experimental_set_query_params(**kwargs)
 
 # ================= Data: yfinance with .NS/.BO fallback =================
 def _get_ticker_with_fallback(ticker, period="6mo", interval="1d"):
@@ -376,32 +397,27 @@ def super_technical_analysis(ticker: str, unit_inr="Cr"):
         score += 1; flags.append("Strong Revenue Growth")
     if fcf_yield is not None and fcf_yield >= 0.04:
         score += 1; flags.append("Attractive FCF Yield")
-    fund_rating = "Strong" if score >= 4 else ("Moderate" if score >= 2 else "Weak")
-    fundamentals["Score"] = f"{score}/{max_score} ({fund_rating})"
+    fundamentals["Score"] = f"{score}/{max_score} ({'Strong' if score>=4 else ('Moderate' if score>=2 else 'Weak')})"
     fundamentals["Flags"] = flags
 
     return tech, fundamentals, used_ticker, tried, hist
 
 # ================= Support/Resistance (Pivot) Chart =================
-def make_sr_chart(hist: pd.DataFrame, techs: dict, lookback: int = 120) -> go.Figure:
+def make_sr_chart(hist: pd.DataFrame, techs: dict, lookback: int = 120):
+    if not PLOTLY_AVAILABLE:
+        return None
     df = hist.tail(lookback).copy()
     df["Date"] = df.index
     fig = go.Figure()
-
-    # Candlestick
     fig.add_trace(go.Candlestick(
         x=df["Date"], open=df["Open"], high=df["High"], low=df["Low"], close=df["Close"],
         name="OHLC", increasing_line_color="#2ca02c", decreasing_line_color="#d62728", showlegend=False
     ))
-
-    # EMA overlays
     fig.add_trace(go.Scatter(x=df["Date"], y=df["EMA10"], name="EMA10", line=dict(color="#1f77b4", width=1.5)))
     fig.add_trace(go.Scatter(x=df["Date"], y=df["EMA20"], name="EMA20", line=dict(color="#ff7f0e", width=1.5)))
 
-    # Pivot lines
     levels = [("S3", "#2ca02c"), ("S2", "#2ca02c"), ("S1", "#2ca02c"),
-              ("Pivot", "#7f7f7f"),
-              ("R1", "#d62728"), ("R2", "#d62728"), ("R3", "#d62728")]
+              ("Pivot", "#7f7f7f"), ("R1", "#d62728"), ("R2", "#d62728"), ("R3", "#d62728")]
     shapes, annotations = [], []
     x0, x1 = df["Date"].iloc[0], df["Date"].iloc[-1]
     y_min = df["Low"].min()
@@ -409,27 +425,21 @@ def make_sr_chart(hist: pd.DataFrame, techs: dict, lookback: int = 120) -> go.Fi
 
     for name, color in levels:
         y = techs.get(name)
-        if y is None:
-            continue
-        shapes.append(dict(type="line", xref="x", yref="y",
-                           x0=x0, x1=x1, y0=y, y1=y,
+        if y is None: continue
+        shapes.append(dict(type="line", xref="x", yref="y", x0=x0, x1=x1, y0=y, y1=y,
                            line=dict(color=color, width=1, dash="dot")))
-        annotations.append(dict(
-            x=x1, y=y, xref="x", yref="y",
-            text=f"{name}: {y:.2f}", showarrow=False,
-            font=dict(size=10, color=color),
-            bgcolor="rgba(255,255,255,0.6)"
-        ))
+        annotations.append(dict(x=x1, y=y, xref="x", yref="y",
+                                text=f"{name}: {y:.2f}", showarrow=False,
+                                font=dict(size=10, color=color),
+                                bgcolor="rgba(255,255,255,0.6)"))
         y_min = min(y_min, y)
         y_max = max(y_max, y)
 
     fig.update_layout(
         template="plotly_white",
         margin=dict(l=10, r=10, t=30, b=10),
-        height=450,
-        xaxis_rangeslider_visible=False,
-        shapes=shapes,
-        annotations=annotations,
+        height=450, xaxis_rangeslider_visible=False,
+        shapes=shapes, annotations=annotations,
         legend=dict(orientation="h", y=1.02, x=0)
     )
     fig.update_yaxes(tickformat=".2f", range=[y_min * 0.98, y_max * 1.02])
@@ -444,6 +454,34 @@ try:
     symbol_to_name = dict(zip(symbols_df["Symbol"], symbols_df["NAME OF COMPANY"]))
 except Exception:
     pass
+
+# ================= Sidebar: Compare feature (under INR unit) =================
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("#### 🔀 Compare (2–3 tickers)")
+    unit_inr_sidebar = "Cr" if unit_choice == "Crore" else "L"
+
+    if all_stock_codes:
+        cmp_sel = st.multiselect("Select tickers", all_stock_codes, max_selections=3)
+        cmp_input_text = st.text_input("Or type comma-separated (e.g., RELIANCE, TCS, INFY)", "")
+        if cmp_input_text.strip():
+            cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
+        else:
+            cmp_tickers = cmp_sel
+    else:
+        cmp_input_text = st.text_input("Enter tickers (comma-separated)", "RELIANCE, TCS")
+        cmp_tickers = [t.strip().upper() for t in cmp_input_text.split(",") if t.strip()]
+
+    # sanitize
+    cmp_tickers = [ _sanitize_ticker(t) for t in cmp_tickers ]
+    cmp_tickers = [ t for t in cmp_tickers if t ]
+
+    if st.button("Get Compare Link (New Tab)"):
+        if len(cmp_tickers) < 2 or len(cmp_tickers) > 3:
+            st.warning("Please select 2 to 3 tickers.")
+        else:
+            qs = f"?mode=compare&tickers={','.join(cmp_tickers)}&unit={unit_inr_sidebar}"
+            st.markdown(f"<a href='{qs}' target='_blank'>Open Compare View ↗️</a>", unsafe_allow_html=True)
 
 # ================= UI: Input section (aligned button) =================
 try:
@@ -461,7 +499,79 @@ with col_in1:
 with col_in2:
     run_btn = st.button("Analyze 🚀", use_container_width=True)
 
-# ================= Run Analysis =================
+# ================= Compare View (via query params) =================
+qp = get_query_params()
+mode = (qp.get("mode") or "").lower()
+if mode == "compare":
+    unit_q = (qp.get("unit") or "Cr")
+    tickers_q = (qp.get("tickers") or "")
+    tickers_list = [ _sanitize_ticker(t) for t in tickers_q.split(",") if t.strip() ]
+    st.markdown(f"### 🔀 Compare Stocks: {', '.join(tickers_list)}")
+    if len(tickers_list) < 2 or len(tickers_list) > 3:
+        st.warning("Please provide 2–3 tickers in the URL, e.g., ?mode=compare&tickers=RELIANCE,TCS,INFY&unit=Cr")
+    else:
+        rows_tech = []
+        rows_fund = []
+        norm_prices = {}
+        for t in tickers_list:
+            techs, funds, used, tried, hist = super_technical_analysis(t, unit_inr=unit_q)
+            if not techs or hist is None:
+                st.error(f"Data not found for {t}. Tried: {', '.join([x for x in (tried or []) if x])}")
+                continue
+            # Technical summary
+            rows_tech.append({
+                "Ticker": used or t,
+                "Signal": techs["Signal"],
+                "Strength": techs["Strength"],
+                "Close": techs["Close"],
+                "RSI": techs["RSI"],
+                "ADX": techs["ADX"],
+                "ATR": techs["ATR"],
+                "Stoploss": techs["Stoploss"],
+                "Pivot": techs["Pivot"],
+                "R1": techs["R1"],
+                "S1": techs["S1"],
+            })
+            # Fundamentals summary
+            rows_fund.append({
+                "Ticker": used or t,
+                "MarketCap": funds.get("MarketCap"),
+                "PE_TTM": funds.get("PE_TTM"),
+                "PriceToBook": funds.get("PriceToBook"),
+                "ROE_%": funds.get("ROE_%"),
+                "DebtToEquity": funds.get("DebtToEquity"),
+                "ProfitMargin_%": funds.get("ProfitMargin_%"),
+                "RevenueGrowth_%": funds.get("RevenueGrowth_%"),
+            })
+            # Normalized close
+            c = hist["Close"].astype(float).dropna()
+            if len(c) > 0:
+                norm_prices[used or t] = (c / c.iloc[0]) * 100.0
+
+        if rows_tech:
+            st.subheader("📊 Technical Comparison")
+            df_t = pd.DataFrame(rows_tech)
+            df_t_display = df_t.copy()
+            for col in ["Close","RSI","ADX","ATR","Stoploss","Pivot","R1","S1"]:
+                df_t_display[col] = df_t_display[col].apply(lambda v: f"{float(v):,.2f}" if v is not None else "NA")
+            st.dataframe(df_t_display, use_container_width=True)
+
+        if rows_fund:
+            st.subheader("🏦 Fundamentals Comparison")
+            df_f = pd.DataFrame(rows_fund)
+            # numeric 2-dec for plain numerics; keep MarketCap string as-is (already formatted in Cr/L)
+            for col in ["PE_TTM","PriceToBook","ROE_%","DebtToEquity","ProfitMargin_%","RevenueGrowth_%"]:
+                df_f[col] = df_f[col].apply(lambda v: f"{float(v):,.2f}" if isinstance(v, (int,float,np.floating)) else v)
+            st.dataframe(df_f, use_container_width=True)
+
+        if norm_prices:
+            st.subheader("📈 Normalized Performance (Rebased to 100)")
+            norm_df = pd.DataFrame(norm_prices)
+            st.line_chart(norm_df, height=350, use_container_width=True)
+
+    st.stop()  # don't render main analyze view below when in compare mode
+
+# ================= Run Single Ticker Analysis =================
 if run_btn:
     company_name = symbol_to_name.get(user_input, "")
     unit_inr = "Cr" if unit_choice == "Crore" else "L"
@@ -531,7 +641,10 @@ if run_btn:
         # -------- Support & Resistance (Pivot) Chart --------
         st.subheader("🧱 Support & Resistance (Pivot) Chart")
         fig = make_sr_chart(hist, techs, lookback=120)
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        if fig is not None:
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        else:
+            st.warning("Plotly not installed. Install plotly to see the S/R candlestick chart.")
 
     else:
         st.error("❌ No technical data found. Tried: " + ", ".join([t for t in (tried or []) if t]))
