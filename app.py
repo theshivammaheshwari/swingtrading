@@ -163,70 +163,78 @@ def to_float(x):
 def _sanitize_ticker(t):
     t = (t or "").strip().upper()
     return re.sub(r"[^A-Z0-9\.\-]", "", t)
-# ================= Real-time Index Fetcher =================
+
+# ================= Real-time Index Fetcher (FIXED) =================
 @st.cache_data(show_spinner=False, ttl=60)
 def fetch_market_indices():
     """
     Fetch NIFTY 50, BANK NIFTY, and SENSEX real-time data
-    Cache for 60 seconds for better performance
     """
-    try:
-        indices_data = []
-        
-        # Index symbols
-        symbols = {
-            "^NSEI": "NIFTY 50",
-            "^NSEBANK": "BANK NIFTY",
-            "^BSESN": "SENSEX"
-        }
-        
-        for symbol, name in symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                hist = ticker.history(period="2d")
+    indices_data = []
+    
+    # Index symbols with fallback
+    symbols = {
+        "^NSEI": "NIFTY 50",
+        "^NSEBANK": "BANK NIFTY",
+        "^BSESN": "SENSEX"
+    }
+    
+    for symbol, name in symbols.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            
+            # Try to get historical data
+            hist = ticker.history(period="5d")  # Increased from 2d to 5d
+            
+            if not hist.empty and len(hist) >= 2:
+                current_price = float(hist['Close'].iloc[-1])
+                prev_price = float(hist['Close'].iloc[-2])
+                change = current_price - prev_price
+                change_pct = (change / prev_price) * 100
                 
-                if len(hist) >= 2:
-                    current_price = hist['Close'].iloc[-1]
-                    prev_price = hist['Close'].iloc[-2]
-                    change = current_price - prev_price
-                    change_pct = (change / prev_price) * 100
-                    
-                    indices_data.append({
-                        'name': name,
-                        'price': current_price,
-                        'change': change,
-                        'change_pct': change_pct
-                    })
-                else:
-                    # Fallback
-                    info = ticker.info
-                    current_price = info.get('regularMarketPrice', 0)
-                    prev_close = info.get('previousClose', current_price)
-                    change = current_price - prev_close
-                    change_pct = (change / prev_close) * 100 if prev_close else 0
-                    
-                    indices_data.append({
-                        'name': name,
-                        'price': current_price,
-                        'change': change,
-                        'change_pct': change_pct
-                    })
-            except:
                 indices_data.append({
                     'name': name,
-                    'price': 0,
-                    'change': 0,
-                    'change_pct': 0
+                    'price': round(current_price, 2),
+                    'change': round(change, 2),
+                    'change_pct': round(change_pct, 2)
                 })
-        
-        return indices_data
-        
-    except Exception as e:
-        return [
-            {'name': 'NIFTY 50', 'price': 0, 'change': 0, 'change_pct': 0},
-            {'name': 'BANK NIFTY', 'price': 0, 'change': 0, 'change_pct': 0},
-            {'name': 'SENSEX', 'price': 0, 'change': 0, 'change_pct': 0}
-        ]
+            else:
+                # Fallback to info
+                info = ticker.info
+                current_price = info.get('regularMarketPrice') or info.get('currentPrice') or 0
+                prev_close = info.get('previousClose', 0)
+                
+                if current_price and prev_close:
+                    change = current_price - prev_close
+                    change_pct = (change / prev_close) * 100
+                    
+                    indices_data.append({
+                        'name': name,
+                        'price': round(current_price, 2),
+                        'change': round(change, 2),
+                        'change_pct': round(change_pct, 2)
+                    })
+                else:
+                    # Add zero data
+                    indices_data.append({
+                        'name': name,
+                        'price': 0,
+                        'change': 0,
+                        'change_pct': 0
+                    })
+                    
+        except Exception as e:
+            # Add placeholder on error
+            indices_data.append({
+                'name': name,
+                'price': 0,
+                'change': 0,
+                'change_pct': 0
+            })
+            print(f"Error fetching {name}: {str(e)}")  # For debugging
+    
+    return indices_data
+
 # ============================================
 def indian_comma_format(number, decimals=2):
     try:
