@@ -31,48 +31,119 @@ st.markdown("""
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
+
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
 st.markdown("""
     <style>
     div.stButton > button { width: 100%; margin-top: 0.55rem; }
     th, td { white-space: nowrap; }
+    
+    /* Ticker tape styling */
+    .ticker-tape {
+        background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+        padding: 8px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Adjust metric styling */
+    div[data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 8px;
+        border-radius: 6px;
+    }
+    
+    div[data-testid="stMetric"] label {
+        color: white !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+    }
+    
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: white !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+    }
+    
+    div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+        font-size: 12px !important;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        div[data-testid="stMetric"] label { font-size: 10px !important; }
+        div[data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 14px !important; }
+        div[data-testid="stMetric"] [data-testid="stMetricDelta"] { font-size: 10px !important; }
+        .ticker-tape { padding: 6px 10px; }
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# ========== COMPACT INDICES ==========
+# ========== TICKER TAPE INDICES ==========
 @st.cache_data(ttl=120, show_spinner=False)
 def fetch_indices():
     results = []
-    indices = [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]
+    indices = [
+        ("^NSEI", "NIFTY 50"),
+        ("^NSEBANK", "BANK NIFTY"),
+        ("^BSESN", "SENSEX")
+    ]
     
     for symbol, name in indices:
         try:
             ticker = yf.Ticker(symbol)
             hist = ticker.history(period="5d")
+            
             if len(hist) >= 2:
                 curr = float(hist['Close'].iloc[-1])
                 prev = float(hist['Close'].iloc[-2])
                 chg = curr - prev
                 chg_pct = (chg / prev) * 100
-                results.append({'name': name, 'price': curr, 'change': chg, 'change_pct': chg_pct})
+                
+                results.append({
+                    'name': name,
+                    'price': curr,
+                    'change': chg,
+                    'change_pct': chg_pct
+                })
         except:
             pass
+    
     return results
+
+# Display ticker tape
+st.markdown('<div class="ticker-tape">', unsafe_allow_html=True)
 
 try:
     data = fetch_indices()
+    
     if data:
-        c1, c2, c3, c4 = st.columns([1.2, 1.2, 1.2, 0.4])
+        cols = st.columns([1, 1, 1, 0.25])
+        
         for i, idx in enumerate(data):
-            with [c1, c2, c3][i]:
-                st.metric(idx['name'], f"₹{idx['price']:,.2f}", f"{idx['change']:+.2f} ({idx['change_pct']:+.2f}%)")
-        with c4:
-            if st.button("🔄", key="ref"):
+            with cols[i]:
+                icon = "📊" if i == 0 else "🏦" if i == 1 else "📈"
+                st.metric(
+                    label=f"{icon} {idx['name']}",
+                    value=f"₹{idx['price']:,.2f}",
+                    delta=f"{idx['change']:+.2f} ({idx['change_pct']:+.2f}%)"
+                )
+        
+        with cols[-1]:
+            st.write("")
+            if st.button("🔄", key="refresh_indices"):
                 st.cache_data.clear()
                 st.rerun()
-except:
-    st.caption("📊 Loading indices...")
-# ========== END ==========
+    else:
+        st.info("📊 Loading...")
+        
+except Exception as e:
+    st.caption("Indices loading...")
+
+st.markdown('</div>', unsafe_allow_html=True)
+# ========== END TICKER TAPE ==========
+
 
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
