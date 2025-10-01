@@ -7,6 +7,7 @@ import yfinance as yf
 import ta
 import re
 from datetime import datetime
+from nsepy import get_quote
 
 # Optional Plotly import (fallback safe if missing)
 PLOTLY_AVAILABLE = True
@@ -262,62 +263,112 @@ def screener_symbol_from_used(used_symbol: str) -> str:
 
 # ================= NEW: Top Gainers/Losers Fetcher =================
 @st.cache_data(show_spinner=False, ttl=300)
-def fetch_top_movers():
+def fetch_top_movers_nsepy():
     """
-    Fetch top 10 gainers and losers from NSE India website.
-    Returns: (gainers_df, losers_df)
+    Fetch top gainers and losers using NSEPy and web scraping
     """
     try:
+        # Method 1: Web scraping from NSE India
+        import requests
+        from bs4 import BeautifulSoup
+        
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'application/json',
-            'Accept-Language': 'en-US,en;q=0.9'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
         }
         
-        gainers_url = "https://www.nseindia.com/api/live-analysis-variations?index=gainers"
-        losers_url = "https://www.nseindia.com/api/live-analysis-variations?index=losers"
-        
         session = requests.Session()
-        session.headers.update(headers)
         
-        session.get("https://www.nseindia.com", timeout=10)
+        # Get gainers
+        gainers_url = "https://www.nseindia.com/market-data/live-equity-market?symbol=nifty%2050"
+        session.get("https://www.nseindia.com", headers=headers, timeout=10)
         
-        gainers_response = session.get(gainers_url, timeout=10)
-        gainers_data = gainers_response.json()
+        # Alternative: Use MoneyControl
+        gainers_url = "https://www.moneycontrol.com/stocks/marketstats/nsegainer1/index.php"
+        losers_url = "https://www.moneycontrol.com/stocks/marketstats/nseloser1/index.php"
         
-        losers_response = session.get(losers_url, timeout=10)
-        losers_data = losers_response.json()
+        # Fetch gainers
+        gainers_response = session.get(gainers_url, headers=headers, timeout=10)
+        gainers_soup = BeautifulSoup(gainers_response.text, 'html.parser')
         
+        # Fetch losers
+        losers_response = session.get(losers_url, headers=headers, timeout=10)
+        losers_soup = BeautifulSoup(losers_response.text, 'html.parser')
+        
+        # Parse gainers table
         gainers_list = []
-        if 'NIFTY' in gainers_data and gainers_data['NIFTY']:
-            for item in gainers_data['NIFTY'][:10]:
-                gainers_list.append({
-                    'Symbol': item.get('symbol', 'N/A'),
-                    'Company': item.get('meta', {}).get('companyName', 'N/A'),
-                    'Current Price (₹)': _safe_round(item.get('ltp', 0), 2),
-                    'Change (₹)': _safe_round(item.get('netPrice', 0), 2),
-                    'Change (%)': _safe_round(item.get('pChange', 0), 2)
-                })
+        gainers_table = gainers_soup.find('table', class_='tbldata14')
+        if gainers_table:
+            rows = gainers_table.find_all('tr')[1:11]  # Skip header, get top 10
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) >= 5:
+                    symbol_tag = cols[0].find('a')
+                    symbol = symbol_tag.text.strip() if symbol_tag else cols[0].text.strip()
+                    company = cols[0].get('title', symbol)
+                    ltp = cols[1].text.strip().replace(',', '')
+                    change = cols[2].text.strip().replace(',', '')
+                    change_pct = cols[3].text.strip().replace('%', '')
+                    
+                    try:
+                        gainers_list.append({
+                            'Symbol': symbol,
+                            'Company': company,
+                            'Current Price (₹)': float(ltp) if ltp else 0,
+                            'Change (₹)': float(change) if change else 0,
+                            'Change (%)': float(change_pct) if change_pct else 0
+                        })
+                    except:
+                        continue
         
+        # Parse losers table
         losers_list = []
-        if 'NIFTY' in losers_data and losers_data['NIFTY']:
-            for item in losers_data['NIFTY'][:10]:
-                losers_list.append({
-                    'Symbol': item.get('symbol', 'N/A'),
-                    'Company': item.get('meta', {}).get('companyName', 'N/A'),
-                    'Current Price (₹)': _safe_round(item.get('ltp', 0), 2),
-                    'Change (₹)': _safe_round(item.get('netPrice', 0), 2),
-                    'Change (%)': _safe_round(item.get('pChange', 0), 2)
-                })
+        losers_table = losers_soup.find('table', class_='tbldata14')
+        if losers_table:
+            rows = losers_table.find_all('tr')[1:11]  # Skip header, get top 10
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) >= 5:
+                    symbol_tag = cols[0].find('a')
+                    symbol = symbol_tag.text.strip() if symbol_tag else cols[0].text.strip()
+                    company = cols[0].get('title', symbol)
+                    ltp = cols[1].text.strip().replace(',', '')
+                    change = cols[2].text.strip().replace(',', '')
+                    change_pct = cols[3].text.strip().replace('%', '')
+                    
+                    try:
+                        losers_list.append({
+                            'Symbol': symbol,
+                            'Company': company,
+                            'Current Price (₹)': float(ltp) if ltp else 0,
+                            'Change (₹)': float(change) if change else 0,
+                            'Change (%)': float(change_pct) if change_pct else 0
+                        })
+                    except:
+                        continue
         
         gainers_df = pd.DataFrame(gainers_list)
         losers_df = pd.DataFrame(losers_list)
+        
+        # Format the values
+        if not gainers_df.empty:
+            gainers_df['Current Price (₹)'] = gainers_df['Current Price (₹)'].apply(lambda x: _safe_round(x, 2))
+            gainers_df['Change (₹)'] = gainers_df['Change (₹)'].apply(lambda x: _safe_round(x, 2))
+            gainers_df['Change (%)'] = gainers_df['Change (%)'].apply(lambda x: _safe_round(x, 2))
+        
+        if not losers_df.empty:
+            losers_df['Current Price (₹)'] = losers_df['Current Price (₹)'].apply(lambda x: _safe_round(x, 2))
+            losers_df['Change (₹)'] = losers_df['Change (₹)'].apply(lambda x: _safe_round(x, 2))
+            losers_df['Change (%)'] = losers_df['Change (%)'].apply(lambda x: _safe_round(x, 2))
         
         return gainers_df, losers_df
         
     except Exception as e:
         st.error(f"Error fetching top movers: {str(e)}")
         return pd.DataFrame(), pd.DataFrame()
+
 
 # ================= Core: Technical + Fundamentals =================
 @st.cache_data(show_spinner=False, ttl=900)
