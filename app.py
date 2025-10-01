@@ -1136,7 +1136,7 @@ else:  # "Home - Stock Analysis"
             else:
                 st.warning("Plotly not installed. Install plotly to see the S/R candlestick chart.")
 
-            else:
+        else:
             st.error("❌ No technical data found. Tried: " + ", ".join([t for t in (tried or []) if t]))
 
         # Fundamentals (trimmed display)
