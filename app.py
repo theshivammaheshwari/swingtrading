@@ -26,119 +26,6 @@ except Exception:
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
 
-# ========== BUY ME A COFFEE BUTTON (TOP RIGHT) ==========
-def buy_me_coffee_button():
-    """Razorpay Buy Me A Coffee button - Top right corner"""
-    coffee_html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <style>
-            .coffee-container {
-                position: fixed;
-                top: 70px;
-                right: 20px;
-                z-index: 9999;
-            }
-            .coffee-button {
-                background: linear-gradient(135deg, #FFDD00 0%, #FBB034 100%);
-                color: #000;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 25px;
-                font-weight: bold;
-                font-size: 14px;
-                cursor: pointer;
-                box-shadow: 0 4px 12px rgba(251, 176, 52, 0.4);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: all 0.3s ease;
-            }
-            .coffee-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(251, 176, 52, 0.6);
-                background: linear-gradient(135deg, #FBB034 0%, #FFDD00 100%);
-            }
-            .coffee-button:active {
-                transform: translateY(0);
-            }
-            .coffee-icon {
-                font-size: 18px;
-            }
-            
-            /* Mobile Responsive */
-            @media (max-width: 768px) {
-                .coffee-container {
-                    top: 10px;
-                    right: 10px;
-                }
-                .coffee-button {
-                    padding: 8px 15px;
-                    font-size: 12px;
-                }
-                .coffee-icon {
-                    font-size: 16px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="coffee-container">
-            <button class="coffee-button" onclick="buyMeACoffee()">
-                <span class="coffee-icon">☕</span>
-                <span>Buy Me A Coffee</span>
-            </button>
-        </div>
-        
-        <script>
-            function buyMeACoffee() {
-                var options = {
-                    key: "rzp_live_WbMdjDSTBNEsE3",
-                    amount: 10000, // 100 INR (in paise)
-                    currency: "INR",
-                    name: "Swing Trading Dashboard",
-                    description: "Support the developer ☕",
-                    image: "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
-                    handler: function (response) {
-                        alert("Thank you for your support! 🙏\\n\\nPayment ID: " + response.razorpay_payment_id);
-                    },
-                    prefill: {
-                        email: "247shivam@gmail.com",
-                        contact: "+919468955596"
-                    },
-                    notes: {
-                        purpose: "Coffee Donation"
-                    },
-                    theme: {
-                        color: "#FFDD00"
-                    },
-                    modal: {
-                        ondismiss: function() {
-                            console.log('Payment cancelled');
-                        }
-                    }
-                };
-                
-                var rzp = new Razorpay(options);
-                
-                rzp.on('payment.failed', function (response){
-                    alert("Payment Failed!\\nError: " + response.error.description);
-                });
-                
-                rzp.open();
-            }
-        </script>
-    </body>
-    </html>
-    """
-    components.html(coffee_html, height=0)
-
-# Call this at the very beginning (after page config)
-buy_me_coffee_button()
-# ========== END BUY ME A COFFEE ==========
 
 
 st.markdown("""
@@ -147,6 +34,126 @@ st.markdown("""
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
+
+# ========== BUY ME A COFFEE - WORKING VERSION ==========
+def buy_me_coffee():
+    """Buy Me A Coffee with Razorpay - Working in Streamlit"""
+    coffee_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            }
+            .coffee-wrapper {
+                display: flex;
+                justify-content: flex-end;
+                padding: 10px 20px;
+                background: transparent;
+            }
+            .coffee-btn {
+                background: linear-gradient(135deg, #FFDD00 0%, #FBB034 100%);
+                color: #000;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 25px;
+                font-weight: bold;
+                font-size: 15px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(251, 176, 52, 0.4);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition: all 0.3s ease;
+            }
+            .coffee-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(251, 176, 52, 0.6);
+                background: linear-gradient(135deg, #FBB034 0%, #FFDD00 100%);
+            }
+            .coffee-btn:active {
+                transform: translateY(-1px);
+            }
+            .coffee-icon {
+                font-size: 20px;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+            @media (max-width: 768px) {
+                .coffee-wrapper {
+                    justify-content: center;
+                    padding: 10px;
+                }
+                .coffee-btn {
+                    padding: 10px 20px;
+                    font-size: 13px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="coffee-wrapper">
+            <button class="coffee-btn" onclick="openRazorpay()">
+                <span class="coffee-icon">☕</span>
+                <span>Buy Me A Coffee</span>
+            </button>
+        </div>
+        
+        <script>
+            function openRazorpay() {
+                var options = {
+                    "key": "rzp_live_WbMdjDSTBNEsE3",
+                    "amount": 10000, // ₹100 in paise
+                    "currency": "INR",
+                    "name": "Swing Trading Dashboard",
+                    "description": "Support the developer ☕",
+                    "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                    "handler": function (response) {
+                        alert("🎉 Thank you for your support!\\n\\n✅ Payment successful!\\nPayment ID: " + response.razorpay_payment_id);
+                    },
+                    "prefill": {
+                        "name": "",
+                        "email": "247shivam@gmail.com",
+                        "contact": "+919468955596"
+                    },
+                    "notes": {
+                        "purpose": "Coffee Donation"
+                    },
+                    "theme": {
+                        "color": "#FFDD00"
+                    },
+                    "modal": {
+                        "ondismiss": function() {
+                            console.log('Payment modal closed');
+                        }
+                    }
+                };
+                
+                var rzp1 = new Razorpay(options);
+                
+                rzp1.on('payment.failed', function (response){
+                    alert("❌ Payment Failed!\\n\\nError: " + response.error.description + "\\nReason: " + response.error.reason);
+                });
+                
+                rzp1.open();
+            }
+        </script>
+    </body>
+    </html>
+    """
+    components.html(coffee_html, height=80)
+
+# Display button
+buy_me_coffee()
+# ========== END ==========
 
 # ========== SIMPLE BANNER ==========
 def simple_banner():
