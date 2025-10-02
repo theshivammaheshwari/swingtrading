@@ -76,7 +76,7 @@ with st.sidebar:
     st.markdown("---")
     
     # ========== SUPPORT BUTTON (OPENS NEW TAB) ==========
-    st.markdown("### ☕ Support the Developer")
+    
     
     # Get the base URL
     support_url = "https://theshivammaheshwari.github.io/swingtrading/support.html"  # If deployed, use full URL
