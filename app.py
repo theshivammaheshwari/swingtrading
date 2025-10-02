@@ -71,75 +71,98 @@ Please consult a SEBI-registered financial adviser before making any investment 
 
 # ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
-     # ========== SUPPORT THE DEVELOPER (DIALOG APPROACH) ==========
+    # ========== SUPPORT THE DEVELOPER (WORKING DIALOG) ==========
     st.markdown("### ☕ Support the Developer")
     
     @st.dialog("☕ Support the Developer", width="large")
     def support_dialog():
         st.markdown("""
-        <div style='text-align: center;'>
+        <div style='text-align: center; padding: 10px;'>
             <h3>Thank you for considering support! 🙏</h3>
-            <p>Your contribution helps keep this project running and ad-free.</p>
+            <p style='color: #666;'>Your contribution helps keep this project running and ad-free.</p>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("---")
         
-        # Amount selection
+        st.markdown("#### Choose an amount:")
+        
+        # Amount selection with immediate payment trigger
         col1, col2 = st.columns(2)
+        
         with col1:
-            amount_50 = st.button("☕ ₹50 - Small Coffee", use_container_width=True)
-            amount_250 = st.button("☕☕☕ ₹250 - Large Coffee", use_container_width=True)
+            if st.button("☕ ₹50 - Small Coffee", use_container_width=True, key="amt50"):
+                trigger_payment(5000)
+            
+            if st.button("☕☕☕ ₹250 - Large Coffee", use_container_width=True, key="amt250"):
+                trigger_payment(25000)
+        
         with col2:
-            amount_100 = st.button("☕☕ ₹100 - Medium Coffee", use_container_width=True)
-            amount_500 = st.button("🎁 ₹500 - Generous Support", use_container_width=True)
-        
-        st.markdown("---")
-        
-        # Payment link component
-        payment_component = """
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <script>
-            function makePayment(amount) {
-                var options = {
-                    key: "rzp_live_WbMdjDSTBNEsE3",
-                    amount: amount,
-                    currency: "INR",
-                    name: "Swing Trading Dashboard",
-                    description: "Support ☕",
-                    handler: function (response) {
-                        alert("Thank you! Payment ID: " + response.razorpay_payment_id);
-                        window.parent.postMessage({type: 'razorpay_success'}, '*');
-                    },
-                    prefill: {
-                        email: "247shivam@gmail.com",
-                        contact: "+919468955596"
-                    },
-                    theme: { color: "#FFDD00" }
-                };
-                var rzp = new Razorpay(options);
-                rzp.open();
-            }
-        </script>
-        """
-        
-        if amount_50:
-            st.components.v1.html(payment_component + "<script>makePayment(5000);</script>", height=0)
-        if amount_100:
-            st.components.v1.html(payment_component + "<script>makePayment(10000);</script>", height=0)
-        if amount_250:
-            st.components.v1.html(payment_component + "<script>makePayment(25000);</script>", height=0)
-        if amount_500:
-            st.components.v1.html(payment_component + "<script>makePayment(50000);</script>", height=0)
+            if st.button("☕☕ ₹100 - Medium Coffee", use_container_width=True, key="amt100"):
+                trigger_payment(10000)
+            
+            if st.button("🎁 ₹500 - Generous Support", use_container_width=True, key="amt500"):
+                trigger_payment(50000)
         
         st.markdown("---")
         st.info("🔒 Secure payment powered by Razorpay")
+    
+    def trigger_payment(amount):
+        """Trigger Razorpay payment"""
+        payment_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        </head>
+        <body>
+            <script>
+                var options = {{
+                    "key": "rzp_live_WbMdjDSTBNEsE3",
+                    "amount": {amount},
+                    "currency": "INR",
+                    "name": "Swing Trading Dashboard",
+                    "description": "Support the developer ☕",
+                    "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                    "handler": function (response) {{
+                        alert("🎉 Thank you so much!\\n\\nPayment ID: " + response.razorpay_payment_id);
+                        window.parent.postMessage({{type: 'payment_success', id: response.razorpay_payment_id}}, '*');
+                    }},
+                    "prefill": {{
+                        "email": "247shivam@gmail.com",
+                        "contact": "+919468955596"
+                    }},
+                    "theme": {{
+                        "color": "#FFDD00"
+                    }},
+                    "modal": {{
+                        "ondismiss": function() {{
+                            console.log('Payment cancelled');
+                        }}
+                    }}
+                }};
+                
+                var rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){{
+                    alert("Payment Failed: " + response.error.description);
+                }});
+                
+                // Auto-open payment
+                setTimeout(function() {{
+                    rzp.open();
+                }}, 100);
+            </script>
+        </body>
+        </html>
+        """
+        components.html(payment_html, height=0)
+        st.success(f"Payment of ₹{amount/100} initiated!")
     
     # Trigger button
     if st.button("☕ Support the Developer", use_container_width=True, type="primary"):
         support_dialog()
     
-    st.caption("Buy me a coffee")
+    st.caption("Buy me a coffee 🙏")
     # ========== END SUPPORT ==========
     
     st.markdown("---")
