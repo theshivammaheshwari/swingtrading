@@ -71,106 +71,75 @@ Please consult a SEBI-registered financial adviser before making any investment 
 
 # ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
-    # ========== SUPPORT THE DEVELOPER (FULL SCREEN MODAL) ==========
+     # ========== SUPPORT THE DEVELOPER (DIALOG APPROACH) ==========
     st.markdown("### ☕ Support the Developer")
     
-    def support_developer_fullscreen():
-        """Support button with full screen Razorpay modal"""
-        support_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        </head>
-        <body style="margin: 0; padding: 0;">
-            <div style="margin: 15px 0;">
-                <button onclick="openFullPayment()" 
-                        style="background: linear-gradient(135deg, #FFDD00 0%, #FBB034 100%); 
-                               color: #000; 
-                               padding: 12px 20px; 
-                               border: none; 
-                               border-radius: 25px; 
-                               font-weight: bold; 
-                               font-size: 14px; 
-                               cursor: pointer; 
-                               box-shadow: 0 4px 12px rgba(251, 176, 52, 0.4); 
-                               width: 100%; 
-                               transition: all 0.3s; 
-                               display: flex; 
-                               align-items: center; 
-                               justify-content: center; 
-                               gap: 8px;"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(251, 176, 52, 0.6)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(251, 176, 52, 0.4)'">
-                    <span style="font-size: 18px;">☕</span>
-                    <span>Support the Developer</span>
-                </button>
-                <p style="font-size: 10px; color: #666; text-align: center; margin-top: 8px; margin-bottom: 0;">
-                    Buy me a coffee (₹100)
-                </p>
-            </div>
-            
-            <script>
-                function openFullPayment() {
-                    // Razorpay options
-                    var options = {
-                        "key": "rzp_live_WbMdjDSTBNEsE3",
-                        "amount": 10000, // ₹100 in paise
-                        "currency": "INR",
-                        "name": "Swing Trading Dashboard",
-                        "description": "Support the developer ☕",
-                        "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
-                        "handler": function (response) {
-                            alert("🎉 Thank you so much for your support!\\n\\nYour contribution helps keep this project running.\\n\\n✅ Payment Successful\\nPayment ID: " + response.razorpay_payment_id);
-                        },
-                        "prefill": {
-                            "name": "",
-                            "email": "247shivam@gmail.com",
-                            "contact": "+919468955596"
-                        },
-                        "notes": {
-                            "purpose": "Developer Support",
-                            "project": "Swing Trading Dashboard"
-                        },
-                        "theme": {
-                            "color": "#FFDD00"
-                        },
-                        "modal": {
-                            "ondismiss": function() {
-                                console.log('Payment modal closed by user');
-                            },
-                            "escape": true,
-                            "backdropclose": true
-                        }
-                    };
-                    
-                    try {
-                        // Create Razorpay instance
-                        var rzp = new Razorpay(options);
-                        
-                        // Handle payment failure
-                        rzp.on('payment.failed', function (response) {
-                            alert("❌ Payment Failed!\\n\\nError: " + response.error.description + "\\n\\nReason: " + response.error.reason);
-                        });
-                        
-                        // Open payment modal (opens in full screen by default)
-                        rzp.open();
-                        
-                    } catch(error) {
-                        console.error('Razorpay initialization error:', error);
-                        alert('⚠️ Unable to load payment gateway.\\n\\nPlease try again or check your internet connection.');
-                    }
-                }
-            </script>
-        </body>
-        </html>
+    @st.dialog("☕ Support the Developer", width="large")
+    def support_dialog():
+        st.markdown("""
+        <div style='text-align: center;'>
+            <h3>Thank you for considering support! 🙏</h3>
+            <p>Your contribution helps keep this project running and ad-free.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("---")
+        
+        # Amount selection
+        col1, col2 = st.columns(2)
+        with col1:
+            amount_50 = st.button("☕ ₹50 - Small Coffee", use_container_width=True)
+            amount_250 = st.button("☕☕☕ ₹250 - Large Coffee", use_container_width=True)
+        with col2:
+            amount_100 = st.button("☕☕ ₹100 - Medium Coffee", use_container_width=True)
+            amount_500 = st.button("🎁 ₹500 - Generous Support", use_container_width=True)
+        
+        st.markdown("---")
+        
+        # Payment link component
+        payment_component = """
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script>
+            function makePayment(amount) {
+                var options = {
+                    key: "rzp_live_WbMdjDSTBNEsE3",
+                    amount: amount,
+                    currency: "INR",
+                    name: "Swing Trading Dashboard",
+                    description: "Support ☕",
+                    handler: function (response) {
+                        alert("Thank you! Payment ID: " + response.razorpay_payment_id);
+                        window.parent.postMessage({type: 'razorpay_success'}, '*');
+                    },
+                    prefill: {
+                        email: "247shivam@gmail.com",
+                        contact: "+919468955596"
+                    },
+                    theme: { color: "#FFDD00" }
+                };
+                var rzp = new Razorpay(options);
+                rzp.open();
+            }
+        </script>
         """
-        # Use height=0 so iframe doesn't create scrollable area
-        components.html(support_html, height=110)
+        
+        if amount_50:
+            st.components.v1.html(payment_component + "<script>makePayment(5000);</script>", height=0)
+        if amount_100:
+            st.components.v1.html(payment_component + "<script>makePayment(10000);</script>", height=0)
+        if amount_250:
+            st.components.v1.html(payment_component + "<script>makePayment(25000);</script>", height=0)
+        if amount_500:
+            st.components.v1.html(payment_component + "<script>makePayment(50000);</script>", height=0)
+        
+        st.markdown("---")
+        st.info("🔒 Secure payment powered by Razorpay")
     
-    support_developer_fullscreen()
+    # Trigger button
+    if st.button("☕ Support the Developer", use_container_width=True, type="primary"):
+        support_dialog()
+    
+    st.caption("Buy me a coffee")
     # ========== END SUPPORT ==========
     
     st.markdown("---")
