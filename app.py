@@ -79,7 +79,7 @@ with st.sidebar:
     st.markdown("### ☕ Support the Developer")
     
     # Get the base URL
-    support_url = "https://raw.githubusercontent.com/theshivammaheshwari/swingtrading/refs/heads/main/support.html"  # If deployed, use full URL
+    support_url = "https://theshivammaheshwari.github.io/swingtrading/support.html"  # If deployed, use full URL
     
     st.markdown(f"""
     <a href="{support_url}" target="_blank" style="text-decoration: none;">
