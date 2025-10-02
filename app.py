@@ -25,17 +25,233 @@ except Exception:
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
-# ========== TOP RIGHT SUPPORT BUTTON (FIXED) ==========
-col_title, col_support = st.columns([5, 1])
 
-with col_title:
-    st.title("📊 Swing Trading + Fundamentals Dashboard")
+# ========== CHECK FOR SUPPORT MODE ==========
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
 
-with col_support:
-    st.markdown("<br>", unsafe_allow_html=True)  # Spacing
-    if st.button("☕ Support", use_container_width=True, type="primary"):
-        st.switch_page("pages/support.py")  # This is correct for pages folder
-# ========== END SUPPORT BUTTON ==========
+# ========== TOP RIGHT BUTTON ==========
+if st.session_state.page == 'home':
+    col_title, col_support = st.columns([5, 1])
+    
+    with col_title:
+        st.title("📊 Swing Trading + Fundamentals Dashboard")
+    
+    with col_support:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("☕ Support", use_container_width=True, type="primary", key="support_btn_top"):
+            st.session_state.page = 'support'
+            st.rerun()
+# ========== END BUTTON ==========
+
+# ========== SUPPORT PAGE CONTENT ==========
+if st.session_state.page == 'support':
+    # Custom CSS for support page
+    st.markdown("""
+        <style>
+        .main {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    # Header
+    st.markdown("""
+        <div style='text-align: center; padding: 40px 20px; color: white;'>
+            <h1>☕ Support the Developer</h1>
+            <p style='font-size: 18px; margin-top: 20px;'>
+                Thank you for considering support!<br>
+                Your contribution helps keep this project running and ad-free.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Initialize session state for payment
+    if 'selected_amount' not in st.session_state:
+        st.session_state.selected_amount = None
+    if 'show_payment' not in st.session_state:
+        st.session_state.show_payment = False
+    
+    # Main container
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("---")
+        st.markdown("### 💰 Choose Amount")
+        
+        # Preset amounts
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            if st.button("☕ ₹100", use_container_width=True, type="secondary", key="amt100"):
+                st.session_state.selected_amount = 10000
+                st.session_state.show_payment = False
+            
+            if st.button("☕☕☕ ₹500", use_container_width=True, type="secondary", key="amt500"):
+                st.session_state.selected_amount = 50000
+                st.session_state.show_payment = False
+        
+        with col_b:
+            if st.button("☕☕ ₹250", use_container_width=True, type="secondary", key="amt250"):
+                st.session_state.selected_amount = 25000
+                st.session_state.show_payment = False
+            
+            if st.button("🎁 ₹1000", use_container_width=True, type="secondary", key="amt1000"):
+                st.session_state.selected_amount = 100000
+                st.session_state.show_payment = False
+        
+        st.markdown("---")
+        
+        # Custom amount
+        st.markdown("### ✏️ Or Enter Custom Amount")
+        custom_amount = st.number_input(
+            "Amount in ₹",
+            min_value=50,
+            max_value=100000,
+            value=100,
+            step=50,
+            key="custom_amt"
+        )
+        
+        if st.button("Set Custom Amount", use_container_width=True, type="secondary", key="set_custom"):
+            st.session_state.selected_amount = custom_amount * 100
+            st.session_state.show_payment = False
+        
+        st.markdown("---")
+        
+        # Show selected amount
+        if st.session_state.selected_amount:
+            amount_in_rupees = st.session_state.selected_amount / 100
+            st.success(f"✅ Selected Amount: ₹{amount_in_rupees:.0f}")
+            
+            # Proceed button
+            if st.button("💳 Proceed to Payment", use_container_width=True, type="primary", key="proceed_pay"):
+                st.session_state.show_payment = True
+                st.rerun()
+        else:
+            st.info("👆 Please select or enter an amount above")
+        
+        # Show payment modal
+        if st.session_state.show_payment and st.session_state.selected_amount:
+            st.markdown("---")
+            st.markdown("### 🔐 Processing Payment...")
+            
+            payment_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                <style>
+                    body {{
+                        margin: 0;
+                        padding: 20px;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                        text-align: center;
+                    }}
+                    .status {{
+                        padding: 20px;
+                        border-radius: 10px;
+                        background: white;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    }}
+                    .loader {{
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #FFDD00;
+                        border-radius: 50%;
+                        width: 40px;
+                        height: 40px;
+                        animation: spin 1s linear infinite;
+                        margin: 20px auto;
+                    }}
+                    @keyframes spin {{
+                        0% {{ transform: rotate(0deg); }}
+                        100% {{ transform: rotate(360deg); }}
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="status" id="status">
+                    <div class="loader"></div>
+                    <p style="color: #666; margin-top: 10px;">Opening Razorpay payment window...</p>
+                </div>
+                
+                <script>
+                    var options = {{
+                        "key": "rzp_live_WbMdjDSTBNEsE3",
+                        "amount": {st.session_state.selected_amount},
+                        "currency": "INR",
+                        "name": "Swing Trading Dashboard",
+                        "description": "Support the developer ☕",
+                        "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                        "handler": function (response) {{
+                            document.getElementById('status').innerHTML = 
+                                '<h2 style="color: #2e7d32;">✅ Payment Successful!</h2>' +
+                                '<p style="color: #666;">Thank you for your support!</p>' +
+                                '<p style="color: #999; font-size: 14px;">Payment ID: ' + response.razorpay_payment_id + '</p>';
+                        }},
+                        "prefill": {{
+                            "email": "247shivam@gmail.com",
+                            "contact": "+919468955596"
+                        }},
+                        "theme": {{ "color": "#FFDD00" }},
+                        "modal": {{
+                            "ondismiss": function() {{
+                                document.getElementById('status').innerHTML = 
+                                    '<h3 style="color: #f57c00;">⚠️ Payment Cancelled</h3>' +
+                                    '<p style="color: #666;">You cancelled the payment</p>';
+                            }}
+                        }}
+                    }};
+                    
+                    try {{
+                        var rzp = new Razorpay(options);
+                        rzp.on('payment.failed', function (response) {{
+                            document.getElementById('status').innerHTML = 
+                                '<h3 style="color: #d32f2f;">❌ Payment Failed</h3>' +
+                                '<p style="color: #666;">' + response.error.description + '</p>';
+                        }});
+                        setTimeout(function() {{ rzp.open(); }}, 500);
+                    }} catch(error) {{
+                        document.getElementById('status').innerHTML = 
+                            '<h3 style="color: #d32f2f;">⚠️ Error</h3>' +
+                            '<p style="color: #666;">Unable to load payment gateway</p>';
+                    }}
+                </script>
+            </body>
+            </html>
+            """
+            
+            components.html(payment_html, height=300, scrolling=False)
+            
+            # Back button
+            if st.button("« Go Back", key="back_from_payment"):
+                st.session_state.show_payment = False
+                st.session_state.selected_amount = None
+                st.rerun()
+    
+    # Footer
+    st.markdown("---")
+    col_back1, col_back2, col_back3 = st.columns([1, 2, 1])
+    with col_back2:
+        if st.button("⬅️ Back to Dashboard", use_container_width=True, key="back_to_dash"):
+            st.session_state.page = 'home'
+            st.session_state.selected_amount = None
+            st.session_state.show_payment = False
+            st.rerun()
+    
+    st.markdown("""
+        <div style='text-align: center; padding: 20px; color: white;'>
+            <p style='font-size: 12px; opacity: 0.8;'>
+                🔒 Secure payment powered by Razorpay
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.stop()  # Stop here, don't show main app content
+
+# ========== MAIN APP CONTENT (Only shows if page == 'home') ==========
+# Your rest of the app code here...
+st.markdown("## Your Main Dashboard Content")
 st.markdown("""
     <style>
     div.stButton > button { width: 100%; margin-top: 0.55rem; }
