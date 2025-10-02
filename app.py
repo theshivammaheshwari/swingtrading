@@ -63,101 +63,130 @@ Please consult a SEBI-registered financial adviser before making any investment 
 किसी भी निवेश का निर्णय लेने से पहले कृपया SEBI-रजिस्टर्ड वित्तीय सलाहकार से परामर्श करें।  
 ---
 """
-# Initialize session state
-if 'show_payment' not in st.session_state:
-    st.session_state.show_payment = False
-if 'payment_amount' not in st.session_state:
-    st.session_state.payment_amount = 0
+
 # ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
-    # ========== SUPPORT THE DEVELOPER ==========
+    # ========== SUPPORT THE DEVELOPER (WORKING 100%) ==========
     st.markdown("### ☕ Support the Developer")
     
-    # Amount selection
-    amount_options = {
-        "☕ Small Coffee - ₹50": 5000,
-        "☕☕ Medium Coffee - ₹100": 10000,
-        "☕☕☕ Large Coffee - ₹250": 25000,
-        "🎁 Generous Support - ₹500": 50000
-    }
-    
-    selected = st.selectbox(
-        "Choose amount:",
-        options=list(amount_options.keys()),
-        key="amount_select"
-    )
-    
-    if st.button("💳 Proceed to Payment", use_container_width=True, type="primary"):
-        st.session_state.show_payment = True
-        st.session_state.payment_amount = amount_options[selected]
-        st.rerun()
-    
-    # Show payment if triggered
-    if st.session_state.show_payment:
-        payment_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        </head>
-        <body>
-            <script>
-                // Immediately open Razorpay on load
-                var rzp = new Razorpay({{
-                    key: "rzp_live_WbMdjDSTBNEsE3",
-                    amount: {st.session_state.payment_amount},
-                    currency: "INR",
-                    name: "Swing Trading Dashboard",
-                    description: "Support the developer ☕",
-                    image: "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
-                    handler: function (response) {{
-                        alert("🎉 Thank you so much for your support!\\n\\nYour contribution helps keep this project running.\\n\\nPayment ID: " + response.razorpay_payment_id);
-                        // Auto-close and reset
-                        window.parent.postMessage({{type: 'payment_complete'}}, '*');
-                    }},
-                    prefill: {{
-                        email: "247shivam@gmail.com",
-                        contact: "+919468955596"
-                    }},
-                    theme: {{ color: "#FFDD00" }},
-                    modal: {{
-                        ondismiss: function() {{
-                            // Auto-close when user cancels
-                            window.parent.postMessage({{type: 'payment_dismissed'}}, '*');
-                        }},
-                        escape: true,
-                        backdropclose: true
-                    }}
-                }});
-                
-                rzp.on('payment.failed', function (response){{
-                    alert("❌ Payment Failed!\\n\\nError: " + response.error.description);
-                    // Auto-close on failure
-                    window.parent.postMessage({{type: 'payment_failed'}}, '*');
-                }});
-                
-                // Open immediately (no delay needed)
-                rzp.open();
-                
-                // Listen for messages from Razorpay
-                window.addEventListener('message', function(e) {{
-                    if (e.data && e.data.type) {{
-                        // Payment completed, dismissed or failed - notify parent
-                        console.log('Payment event:', e.data.type);
-                    }}
-                }});
-            </script>
-        </body>
-        </html>
-        """
+    # Direct HTML with Razorpay - No Streamlit state needed
+    support_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            }
+            .container {
+                padding: 10px 0;
+            }
+            .amount-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            .amount-btn {
+                background: #f8f9fa;
+                border: 2px solid #FFDD00;
+                color: #333;
+                padding: 10px 8px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 12px;
+                transition: all 0.2s;
+                text-align: center;
+            }
+            .amount-btn:hover {
+                background: #FFDD00;
+                transform: scale(1.05);
+                border-color: #FBB034;
+            }
+            .amount-btn:active {
+                transform: scale(0.98);
+            }
+            .info-text {
+                text-align: center;
+                font-size: 11px;
+                color: #666;
+                margin-top: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="amount-grid">
+                <button class="amount-btn" onclick="pay(5000)">☕ ₹50</button>
+                <button class="amount-btn" onclick="pay(10000)">☕☕ ₹100</button>
+                <button class="amount-btn" onclick="pay(25000)">☕☕☕ ₹250</button>
+                <button class="amount-btn" onclick="pay(50000)">🎁 ₹500</button>
+            </div>
+            <p class="info-text">Choose an amount to support</p>
+        </div>
         
-        # Render payment modal (height=0 means no visible iframe, just the modal)
-        components.html(payment_html, height=0)
-        
-        # Auto-reset after rendering
-        st.session_state.show_payment = False
+        <script>
+            function pay(amount) {
+                var amountInRupees = amount / 100;
+                
+                var options = {
+                    "key": "rzp_live_WbMdjDSTBNEsE3",
+                    "amount": amount,
+                    "currency": "INR",
+                    "name": "Swing Trading Dashboard",
+                    "description": "Support the developer - ₹" + amountInRupees,
+                    "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                    "handler": function (response) {
+                        alert("🎉 Thank you so much for your ₹" + amountInRupees + " support!\\n\\nYour contribution helps keep this project running.\\n\\nPayment ID: " + response.razorpay_payment_id);
+                    },
+                    "prefill": {
+                        "name": "",
+                        "email": "247shivam@gmail.com",
+                        "contact": "+919468955596"
+                    },
+                    "notes": {
+                        "amount": "₹" + amountInRupees,
+                        "purpose": "Developer Support"
+                    },
+                    "theme": {
+                        "color": "#FFDD00"
+                    },
+                    "modal": {
+                        "ondismiss": function() {
+                            console.log('Payment cancelled by user');
+                        },
+                        "escape": true,
+                        "backdropclose": true
+                    }
+                };
+                
+                try {
+                    var rzp = new Razorpay(options);
+                    
+                    rzp.on('payment.failed', function (response) {
+                        alert("❌ Payment Failed!\\n\\nError: " + response.error.description + "\\n\\nReason: " + response.error.reason);
+                    });
+                    
+                    // Open Razorpay modal
+                    rzp.open();
+                    
+                } catch(error) {
+                    console.error('Razorpay error:', error);
+                    alert('⚠️ Unable to open payment window. Please try again or check your internet connection.');
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
     
-    st.caption("Support this free project 🙏")
+    # Render the payment buttons
+    components.html(support_html, height=160, scrolling=False)
     # ========== END SUPPORT ==========
     
     st.markdown("---")
