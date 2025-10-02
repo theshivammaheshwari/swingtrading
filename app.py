@@ -32,45 +32,138 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== EARNKARO AFFILIATE BANNER ==========
-def earnkaro_affiliate_banner():
-    """EarnKaro affiliate link as professional banner"""
-    banner_html = """
-    <div style="background: linear-gradient(90deg, #232F3E 0%, #FF9900 100%); padding: 15px 25px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: transform 0.3s;"
-         onmouseover="this.style.transform='translateY(-3px)'"
-         onmouseout="this.style.transform='translateY(0)'">
+# ========== SBI CREDIT CARD AD (MOBILE RESPONSIVE) ==========
+def sbi_credit_card_banner():
+    """SBI Simply Click Credit Card - Mobile friendly"""
+    card_html = """
+    <style>
+        .card-container {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .card-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .card-image {
+            flex: 0 0 auto;
+            text-align: center;
+        }
+        .card-image img {
+            width: 200px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card-details {
+            flex: 1;
+            min-width: 250px;
+        }
+        .card-title {
+            font-size: 20px;
+            color: #1e3a8a;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+        .card-features {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.8;
+            margin: 10px 0;
+        }
+        .card-cta {
+            display: inline-block;
+            background: #1e3a8a;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 10px;
+            box-shadow: 0 2px 6px rgba(30,58,138,0.3);
+            transition: all 0.3s;
+        }
+        .card-cta:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(30,58,138,0.4);
+        }
+        .disclaimer {
+            text-align: center;
+            color: white;
+            font-size: 10px;
+            margin-top: 12px;
+            opacity: 0.9;
+        }
         
-        <!-- Left: Product Info -->
-        <div style="flex: 1;">
-            <p style="color: white; font-size: 16px; margin: 0; font-weight: bold;">
-                📚 Recommended: Stock Market & Trading Books
-            </p>
-            <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 5px 0 0 0;">
-                Learn from the best investors | Get exclusive deals on Amazon
-            </p>
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .card-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .card-image img {
+                width: 180px;
+            }
+            .card-title {
+                font-size: 18px;
+            }
+            .card-features {
+                font-size: 13px;
+            }
+            .card-cta {
+                padding: 10px 25px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    
+    <div class="card-container">
+        <div class="card-content">
+            
+            <!-- Card Image -->
+            <div class="card-image">
+                <img src="https://www.sbicard.com/sbi-card-en/assets/images/product/sbi-card-simply-click-advantage-1.png" 
+                     alt="SBI Simply Click Credit Card"
+                     onerror="this.src='https://via.placeholder.com/200x130/1e3a8a/ffffff?text=SBI+Card'">
+            </div>
+            
+            <!-- Card Details -->
+            <div class="card-details">
+                <h3 class="card-title">💳 SBI Simply Click Credit Card</h3>
+                <div class="card-features">
+                    ✅ 5X Reward Points on online spends<br>
+                    ✅ 10X Rewards on selected partners<br>
+                    ✅ Low joining & annual fee<br>
+                    ✅ Perfect for online shopping & bill payments
+                </div>
+                <a href="https://bitli.in/rRDvT8n" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="card-cta">
+                    Apply Now →
+                </a>
+            </div>
+            
         </div>
-        
-        <!-- Right: CTA Button -->
-        <div style="flex: 0 0 auto; margin-left: 20px;">
-            <a href="https://bitli.in/rRDvT8n" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="display: inline-block; background: white; color: #FF9900; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;"
-               onmouseover="this.style.background='#f5f5f5'; this.style.transform='scale(1.05)'"
-               onmouseout="this.style.background='white'; this.style.transform='scale(1)'">
-                Shop Now on Amazon →
-            </a>
-        </div>
+        <p class="disclaimer">Affiliate Link | Terms & Conditions Apply</p>
     </div>
-    <p style="text-align: center; font-size: 9px; color: #999; margin-top: -10px; margin-bottom: 20px;">
-        Affiliate Link | We may earn a commission from qualifying purchases
-    </p>
     """
-    components.html(banner_html, height=110)
+    components.html(card_html, height=280)
 
 # Display banner
-earnkaro_affiliate_banner()
-# ========== END BANNER ==========
+sbi_credit_card_banner()
+# ========== END ==========
 
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
