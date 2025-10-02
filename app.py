@@ -25,7 +25,7 @@ except Exception:
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
-# ========== TOP RIGHT SUPPORT BUTTON ==========
+# ========== TOP RIGHT SUPPORT BUTTON (FIXED) ==========
 col_title, col_support = st.columns([5, 1])
 
 with col_title:
@@ -34,7 +34,7 @@ with col_title:
 with col_support:
     st.markdown("<br>", unsafe_allow_html=True)  # Spacing
     if st.button("☕ Support", use_container_width=True, type="primary"):
-        st.switch_page("pages/support.py")
+        st.switch_page("pages/support.py")  # This is correct for pages folder
 # ========== END SUPPORT BUTTON ==========
 st.markdown("""
     <style>
