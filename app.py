@@ -32,137 +32,20 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== SBI CREDIT CARD AD (MOBILE RESPONSIVE) ==========
-def sbi_credit_card_banner():
-    """SBI Simply Click Credit Card - Mobile friendly"""
-    card_html = """
-    <style>
-        .card-container {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .card-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .card-image {
-            flex: 0 0 auto;
-            text-align: center;
-        }
-        .card-image img {
-            width: 200px;
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .card-details {
-            flex: 1;
-            min-width: 250px;
-        }
-        .card-title {
-            font-size: 20px;
-            color: #1e3a8a;
-            font-weight: bold;
-            margin: 0 0 10px 0;
-        }
-        .card-features {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.8;
-            margin: 10px 0;
-        }
-        .card-cta {
-            display: inline-block;
-            background: #1e3a8a;
-            color: white;
-            padding: 12px 30px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
-            margin-top: 10px;
-            box-shadow: 0 2px 6px rgba(30,58,138,0.3);
-            transition: all 0.3s;
-        }
-        .card-cta:hover {
-            background: #1e40af;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(30,58,138,0.4);
-        }
-        .disclaimer {
-            text-align: center;
-            color: white;
-            font-size: 10px;
-            margin-top: 12px;
-            opacity: 0.9;
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .card-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            .card-image img {
-                width: 180px;
-            }
-            .card-title {
-                font-size: 18px;
-            }
-            .card-features {
-                font-size: 13px;
-            }
-            .card-cta {
-                padding: 10px 25px;
-                font-size: 14px;
-            }
-        }
-    </style>
-    
-    <div class="card-container">
-        <div class="card-content">
-            
-            <!-- Card Image -->
-            <div class="card-image">
-                <img src="https://www.sbicard.com/sbi-card-en/assets/images/product/sbi-card-simply-click-advantage-1.png" 
-                     alt="SBI Simply Click Credit Card"
-                     onerror="this.src='https://via.placeholder.com/200x130/1e3a8a/ffffff?text=SBI+Card'">
-            </div>
-            
-            <!-- Card Details -->
-            <div class="card-details">
-                <h3 class="card-title">💳 SBI Simply Click Credit Card</h3>
-                <div class="card-features">
-                    ✅ 5X Reward Points on online spends<br>
-                    ✅ 10X Rewards on selected partners<br>
-                    ✅ Low joining & annual fee<br>
-                    ✅ Perfect for online shopping & bill payments
-                </div>
-                <a href="https://bitli.in/rRDvT8n" 
-                   target="_blank" 
-                   rel="noopener noreferrer"
-                   class="card-cta">
-                    Apply Now →
-                </a>
-            </div>
-            
-        </div>
-        <p class="disclaimer">Affiliate Link | Terms & Conditions Apply</p>
+# ========== SIMPLE BANNER ==========
+def simple_banner():
+    """Simple text banner"""
+    banner_html = """
+    <div style="background: #f0f7ff; border-left: 4px solid #1e40af; padding: 15px 20px; margin-bottom: 20px; border-radius: 8px;">
+        <p style="margin: 0; color: #1e40af; font-size: 15px;">
+            💳 <strong>SBI Simply Click Credit Card</strong> - 5X Reward Points on online shopping. 
+            <a href="https://bitli.in/rRDvT8n" target="_blank" style="color: #1e40af; font-weight: bold; text-decoration: underline;">Apply Now →</a>
+        </p>
     </div>
     """
-    components.html(card_html, height=280)
+    components.html(banner_html, height=70)
 
-# Display banner
-sbi_credit_card_banner()
+simple_banner()
 # ========== END ==========
 
 st.title("📊 Swing Trading + Fundamentals Dashboard")
