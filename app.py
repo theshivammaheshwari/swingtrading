@@ -32,42 +32,45 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ========== GOOGLE ADSENSE - FINAL VERSION ==========
-def google_adsense_banner():
-    """Google AdSense - 728x90 Banner"""
-    ad_html = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="margin: 0; padding: 0; background: transparent;">
-        <div style="text-align: center; padding: 20px 10px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <p style="font-size: 11px; color: #999; margin: 0 0 12px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                Advertisement
+# ========== EARNKARO AFFILIATE BANNER ==========
+def earnkaro_affiliate_banner():
+    """EarnKaro affiliate link as professional banner"""
+    banner_html = """
+    <div style="background: linear-gradient(90deg, #232F3E 0%, #FF9900 100%); padding: 15px 25px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: transform 0.3s;"
+         onmouseover="this.style.transform='translateY(-3px)'"
+         onmouseout="this.style.transform='translateY(0)'">
+        
+        <!-- Left: Product Info -->
+        <div style="flex: 1;">
+            <p style="color: white; font-size: 16px; margin: 0; font-weight: bold;">
+                📚 Recommended: Stock Market & Trading Books
             </p>
-            <div style="display: inline-block; min-height: 90px;">
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9925469493511043"
-                     crossorigin="anonymous"></script>
-                <!-- trading247 -->
-                <ins class="adsbygoogle"
-                     style="display:inline-block;width:728px;height:90px"
-                     data-ad-client="ca-pub-9925469493511043"
-                     data-ad-slot="7734016441"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
+            <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 5px 0 0 0;">
+                Learn from the best investors | Get exclusive deals on Amazon
+            </p>
         </div>
-    </body>
-    </html>
+        
+        <!-- Right: CTA Button -->
+        <div style="flex: 0 0 auto; margin-left: 20px;">
+            <a href="https://bitli.in/rRDvT8n" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               style="display: inline-block; background: white; color: #FF9900; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: all 0.3s;"
+               onmouseover="this.style.background='#f5f5f5'; this.style.transform='scale(1.05)'"
+               onmouseout="this.style.background='white'; this.style.transform='scale(1)'">
+                Shop Now on Amazon →
+            </a>
+        </div>
+    </div>
+    <p style="text-align: center; font-size: 9px; color: #999; margin-top: -10px; margin-bottom: 20px;">
+        Affiliate Link | We may earn a commission from qualifying purchases
+    </p>
     """
-    components.html(ad_html, height=160, scrolling=False)
+    components.html(banner_html, height=110)
 
-# Display ad
-google_adsense_banner()
-# ========== END ADSENSE ==========
+# Display banner
+earnkaro_affiliate_banner()
+# ========== END BANNER ==========
 
 st.title("📊 Swing Trading + Fundamentals Dashboard")
 
