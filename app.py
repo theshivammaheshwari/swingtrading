@@ -34,8 +34,7 @@ if 'page' not in st.session_state:
 if st.session_state.page == 'home':
     col_title, col_support = st.columns([5, 1])
     
-    with col_title:
-        st.title("📊 Swing Trading + Fundamentals Dashboard")
+    
     
     with col_support:
         st.markdown("<br>", unsafe_allow_html=True)
