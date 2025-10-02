@@ -75,6 +75,40 @@ with st.sidebar:
     st.write("📱 +91-9468955596")
     st.markdown("---")
     
+    # ========== SUPPORT BUTTON (OPENS NEW TAB) ==========
+    st.markdown("### ☕ Support the Developer")
+    
+    # Get the base URL
+    support_url = "support.html"  # If deployed, use full URL
+    
+    st.markdown(f"""
+    <a href="{support_url}" target="_blank" style="text-decoration: none;">
+        <button style="background: linear-gradient(135deg, #FFDD00 0%, #FBB034 100%); 
+                       color: #000; 
+                       padding: 12px 20px; 
+                       border: none; 
+                       border-radius: 25px; 
+                       font-weight: bold; 
+                       font-size: 14px; 
+                       cursor: pointer; 
+                       width: 100%; 
+                       box-shadow: 0 4px 12px rgba(251, 176, 52, 0.4);
+                       transition: all 0.3s;
+                       display: flex;
+                       align-items: center;
+                       justify-content: center;
+                       gap: 8px;">
+            <span style="font-size: 18px;">☕</span>
+            <span>Support the Developer</span>
+        </button>
+    </a>
+    <p style="text-align: center; font-size: 11px; color: #666; margin-top: 8px;">
+        Opens in new tab
+    </p>
+    """, unsafe_allow_html=True)
+    # ========== END SUPPORT BUTTON ==========
+    st.markdown("---")
+
     menu_option = st.radio(
         "📑 Navigation",
         ["Home - Stock Analysis", "🔥 Top Gainers & Losers", "🔀 Compare Stocks"],
