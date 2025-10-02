@@ -25,17 +25,12 @@ except Exception:
 
 # ================= Streamlit Config =================
 st.set_page_config(page_title="Swing Trading + Fundamentals Dashboard", page_icon="📊", layout="wide")
-
-
-
 st.markdown("""
     <style>
     div.stButton > button { width: 100%; margin-top: 0.55rem; }
     th, td { white-space: nowrap; }
     </style>
 """, unsafe_allow_html=True)
-
-
 
 # ========== SIMPLE BANNER ==========
 def simple_banner():
@@ -68,16 +63,14 @@ Please consult a SEBI-registered financial adviser before making any investment 
 किसी भी निवेश का निर्णय लेने से पहले कृपया SEBI-रजिस्टर्ड वित्तीय सलाहकार से परामर्श करें।  
 ---
 """
-
 # Initialize session state
 if 'show_payment' not in st.session_state:
     st.session_state.show_payment = False
 if 'payment_amount' not in st.session_state:
     st.session_state.payment_amount = 0
-    
 # ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
-    # ========== SUPPORT THE DEVELOPER (SESSION STATE) ==========
+    # ========== SUPPORT THE DEVELOPER ==========
     st.markdown("### ☕ Support the Developer")
     
     # Amount selection
@@ -108,10 +101,8 @@ with st.sidebar:
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         </head>
         <body>
-            <div style="text-align: center; padding: 10px;">
-                <p style="color: #666;">Opening payment window...</p>
-            </div>
             <script>
+                // Immediately open Razorpay on load
                 var rzp = new Razorpay({{
                     key: "rzp_live_WbMdjDSTBNEsE3",
                     amount: {st.session_state.payment_amount},
@@ -120,8 +111,9 @@ with st.sidebar:
                     description: "Support the developer ☕",
                     image: "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
                     handler: function (response) {{
-                        alert("🎉 Thank you so much!\\n\\nPayment ID: " + response.razorpay_payment_id);
-                        window.parent.postMessage({{type: 'close_payment'}}, '*');
+                        alert("🎉 Thank you so much for your support!\\n\\nYour contribution helps keep this project running.\\n\\nPayment ID: " + response.razorpay_payment_id);
+                        // Auto-close and reset
+                        window.parent.postMessage({{type: 'payment_complete'}}, '*');
                     }},
                     prefill: {{
                         email: "247shivam@gmail.com",
@@ -130,36 +122,45 @@ with st.sidebar:
                     theme: {{ color: "#FFDD00" }},
                     modal: {{
                         ondismiss: function() {{
-                            window.parent.postMessage({{type: 'close_payment'}}, '*');
-                        }}
+                            // Auto-close when user cancels
+                            window.parent.postMessage({{type: 'payment_dismissed'}}, '*');
+                        }},
+                        escape: true,
+                        backdropclose: true
                     }}
                 }});
                 
-                rzp.on('payment.failed', function (r){{
-                    alert("Payment Failed: " + r.error.description);
-                    window.parent.postMessage({{type: 'close_payment'}}, '*');
+                rzp.on('payment.failed', function (response){{
+                    alert("❌ Payment Failed!\\n\\nError: " + response.error.description);
+                    // Auto-close on failure
+                    window.parent.postMessage({{type: 'payment_failed'}}, '*');
                 }});
                 
-                // Auto open after 500ms
-                setTimeout(function() {{
-                    rzp.open();
-                }}, 500);
+                // Open immediately (no delay needed)
+                rzp.open();
+                
+                // Listen for messages from Razorpay
+                window.addEventListener('message', function(e) {{
+                    if (e.data && e.data.type) {{
+                        // Payment completed, dismissed or failed - notify parent
+                        console.log('Payment event:', e.data.type);
+                    }}
+                }});
             </script>
         </body>
         </html>
         """
-        components.html(payment_html, height=100)
         
-        # Reset button
-        if st.button("Close Payment", key="close_pay"):
-            st.session_state.show_payment = False
-            st.rerun()
+        # Render payment modal (height=0 means no visible iframe, just the modal)
+        components.html(payment_html, height=0)
+        
+        # Auto-reset after rendering
+        st.session_state.show_payment = False
     
     st.caption("Support this free project 🙏")
     # ========== END SUPPORT ==========
     
     st.markdown("---")
-    
     st.markdown("### 👨‍💻 Developer Info")
     st.markdown("**Mr. Shivam Maheshwari**")
     st.write("🔗 [LinkedIn](https://www.linkedin.com/in/theshivammaheshwari)")
