@@ -165,12 +165,49 @@
             </div>
         </div>
 
-        <div class="footer">
+                <div class="footer">
             🔒 Secure payment powered by Razorpay<br>
             All transactions are encrypted and secure
         </div>
 
-        <a href="https://trading247.streamlit.app" class="back-link" target="_self">⬅️ Back to Dashboard</a>
+        <!-- Updated Navigation Buttons -->
+        <div style="margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            <a href="https://trading247.streamlit.app" target="_blank" style="text-decoration: none; flex: 1; min-width: 200px; max-width: 250px;">
+                <button style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                               color: white; 
+                               padding: 14px 24px; 
+                               border: none; 
+                               border-radius: 12px; 
+                               font-weight: bold; 
+                               cursor: pointer; 
+                               width: 100%;
+                               font-size: 16px;
+                               transition: all 0.3s;
+                               box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);"
+                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.6)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'">
+                    ⬅️ Back to Dashboard
+                </button>
+            </a>
+            <button onclick="closeTab()" 
+                    style="flex: 1; 
+                           min-width: 200px;
+                           max-width: 250px;
+                           background: linear-gradient(135deg, #78909c 0%, #607d8b 100%); 
+                           color: white; 
+                           padding: 14px 24px; 
+                           border: none; 
+                           border-radius: 12px; 
+                           font-weight: bold; 
+                           cursor: pointer;
+                           font-size: 16px;
+                           transition: all 0.3s;
+                           box-shadow: 0 4px 12px rgba(96, 125, 139, 0.4);"
+                    onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 16px rgba(96, 125, 139, 0.6)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(96, 125, 139, 0.4)'">
+                ✖️ Close Tab
+            </button>
+        </div>
     </div>
 
     <script>
@@ -184,7 +221,18 @@
                 alert('Please enter amount between ₹50 and ₹1,00,000');
                 return;
             }
-            openRazorpay(customAmount * 100); // Convert to paise
+            openRazorpay(customAmount * 100);
+        }
+
+        function closeTab() {
+            // Try to close the tab
+            window.close();
+            
+            // If window.close() doesn't work (some browsers block it)
+            // Redirect to dashboard after 500ms
+            setTimeout(function() {
+                window.location.href = 'https://trading247.streamlit.app';
+            }, 500);
         }
 
         function openRazorpay(amount) {
