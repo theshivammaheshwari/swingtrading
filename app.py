@@ -131,51 +131,117 @@ if st.session_state.page == 'support':
         else:
             st.info("👆 Please select or enter an amount above")
         
-        # Show payment modal
+        # Show payment modal (FULL SCREEN)
         if st.session_state.show_payment and st.session_state.selected_amount:
+            # Clear everything and show only payment
             st.markdown("---")
-            st.markdown("### 🔐 Processing Payment...")
             
+            # Full screen payment container
             payment_html = f"""
             <!DOCTYPE html>
             <html>
             <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                 <style>
-                    body {{
+                    * {{
                         margin: 0;
-                        padding: 20px;
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-                        text-align: center;
+                        padding: 0;
+                        box-sizing: border-box;
                     }}
-                    .status {{
-                        padding: 20px;
-                        border-radius: 10px;
+                    body {{
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }}
+                    .payment-container {{
                         background: white;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        padding: 60px 40px;
+                        border-radius: 20px;
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        text-align: center;
+                        max-width: 500px;
+                        width: 90%;
                     }}
                     .loader {{
-                        border: 4px solid #f3f3f3;
-                        border-top: 4px solid #FFDD00;
+                        border: 6px solid #f3f3f3;
+                        border-top: 6px solid #FFDD00;
                         border-radius: 50%;
-                        width: 40px;
-                        height: 40px;
+                        width: 60px;
+                        height: 60px;
                         animation: spin 1s linear infinite;
-                        margin: 20px auto;
+                        margin: 0 auto 30px;
                     }}
                     @keyframes spin {{
                         0% {{ transform: rotate(0deg); }}
                         100% {{ transform: rotate(360deg); }}
                     }}
+                    h2 {{
+                        color: #333;
+                        margin-bottom: 15px;
+                        font-size: 28px;
+                    }}
+                    p {{
+                        color: #666;
+                        font-size: 16px;
+                        line-height: 1.6;
+                    }}
+                    .amount {{
+                        background: #fff8e1;
+                        padding: 20px;
+                        border-radius: 12px;
+                        margin: 20px 0;
+                        border: 2px solid #FFDD00;
+                    }}
+                    .amount-value {{
+                        font-size: 36px;
+                        font-weight: bold;
+                        color: #000;
+                    }}
+                    .success-icon {{
+                        font-size: 80px;
+                        margin-bottom: 20px;
+                    }}
+                    .error-icon {{
+                        font-size: 80px;
+                        margin-bottom: 20px;
+                    }}
+                    .payment-id {{
+                        background: #f5f5f5;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 14px;
+                        color: #666;
+                        word-break: break-all;
+                    }}
+                    .status-message {{
+                        margin-top: 20px;
+                        font-size: 14px;
+                        color: #999;
+                    }}
                 </style>
             </head>
             <body>
-                <div class="status" id="status">
+                <div class="payment-container" id="payment-status">
                     <div class="loader"></div>
-                    <p style="color: #666; margin-top: 10px;">Opening Razorpay payment window...</p>
+                    <h2>Processing Payment</h2>
+                    <div class="amount">
+                        <p style="margin-bottom: 8px; color: #999; font-size: 14px;">Amount to Pay</p>
+                        <div class="amount-value">₹{st.session_state.selected_amount / 100:.0f}</div>
+                    </div>
+                    <p>Opening secure Razorpay payment window...</p>
+                    <p class="status-message">Please complete the payment in the popup window</p>
                 </div>
                 
                 <script>
+                    console.log('Initializing Razorpay payment...');
+                    
                     var options = {{
                         "key": "rzp_live_WbMdjDSTBNEsE3",
                         "amount": {st.session_state.selected_amount},
@@ -184,70 +250,100 @@ if st.session_state.page == 'support':
                         "description": "Support the developer ☕",
                         "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
                         "handler": function (response) {{
-                            document.getElementById('status').innerHTML = 
-                                '<h2 style="color: #2e7d32;">✅ Payment Successful!</h2>' +
-                                '<p style="color: #666;">Thank you for your support!</p>' +
-                                '<p style="color: #999; font-size: 14px;">Payment ID: ' + response.razorpay_payment_id + '</p>';
+                            console.log('Payment successful:', response);
+                            document.getElementById('payment-status').innerHTML = 
+                                '<div class="success-icon">🎉</div>' +
+                                '<h2 style="color: #2e7d32;">Payment Successful!</h2>' +
+                                '<p style="font-size: 18px; margin: 20px 0;">Thank you so much for your support!</p>' +
+                                '<div class="amount">' +
+                                    '<p style="margin-bottom: 8px; color: #999; font-size: 14px;">Amount Paid</p>' +
+                                    '<div class="amount-value">₹{st.session_state.selected_amount / 100:.0f}</div>' +
+                                '</div>' +
+                                '<div class="payment-id">' +
+                                    '<strong>Payment ID:</strong><br>' + response.razorpay_payment_id +
+                                '</div>' +
+                                '<p style="margin-top: 30px; color: #666;">Your contribution helps keep this project running and ad-free.</p>';
                         }},
                         "prefill": {{
                             "email": "247shivam@gmail.com",
                             "contact": "+919468955596"
                         }},
-                        "theme": {{ "color": "#FFDD00" }},
+                        "notes": {{
+                            "amount": "₹{st.session_state.selected_amount / 100}",
+                            "purpose": "Developer Support"
+                        }},
+                        "theme": {{
+                            "color": "#FFDD00"
+                        }},
                         "modal": {{
                             "ondismiss": function() {{
-                                document.getElementById('status').innerHTML = 
-                                    '<h3 style="color: #f57c00;">⚠️ Payment Cancelled</h3>' +
-                                    '<p style="color: #666;">You cancelled the payment</p>';
-                            }}
+                                console.log('Payment cancelled by user');
+                                document.getElementById('payment-status').innerHTML = 
+                                    '<div class="error-icon">⚠️</div>' +
+                                    '<h2 style="color: #f57c00;">Payment Cancelled</h2>' +
+                                    '<p style="margin: 20px 0;">You cancelled the payment process</p>' +
+                                    '<div class="amount">' +
+                                        '<p style="margin-bottom: 8px; color: #999; font-size: 14px;">Amount</p>' +
+                                        '<div class="amount-value">₹{st.session_state.selected_amount / 100:.0f}</div>' +
+                                    '</div>' +
+                                    '<p style="color: #999; margin-top: 20px;">You can close this window and try again</p>';
+                            }},
+                            "escape": true,
+                            "backdropclose": true
                         }}
                     }};
                     
                     try {{
                         var rzp = new Razorpay(options);
+                        
                         rzp.on('payment.failed', function (response) {{
-                            document.getElementById('status').innerHTML = 
-                                '<h3 style="color: #d32f2f;">❌ Payment Failed</h3>' +
-                                '<p style="color: #666;">' + response.error.description + '</p>';
+                            console.error('Payment failed:', response.error);
+                            document.getElementById('payment-status').innerHTML = 
+                                '<div class="error-icon">❌</div>' +
+                                '<h2 style="color: #d32f2f;">Payment Failed</h2>' +
+                                '<p style="margin: 20px 0; color: #666;">' + response.error.description + '</p>' +
+                                '<div class="amount">' +
+                                    '<p style="margin-bottom: 8px; color: #999; font-size: 14px;">Amount</p>' +
+                                    '<div class="amount-value">₹{st.session_state.selected_amount / 100:.0f}</div>' +
+                                '</div>' +
+                                '<div style="background: #ffebee; padding: 15px; border-radius: 8px; margin-top: 20px;">' +
+                                    '<p style="color: #d32f2f; font-size: 14px; margin: 0;"><strong>Reason:</strong> ' + response.error.reason + '</p>' +
+                                '</div>' +
+                                '<p style="color: #999; margin-top: 20px;">Please try again or contact support</p>';
                         }});
-                        setTimeout(function() {{ rzp.open(); }}, 500);
+                        
+                        // Open Razorpay modal after a short delay
+                        setTimeout(function() {{
+                            console.log('Opening Razorpay modal...');
+                            rzp.open();
+                        }}, 800);
+                        
                     }} catch(error) {{
-                        document.getElementById('status').innerHTML = 
-                            '<h3 style="color: #d32f2f;">⚠️ Error</h3>' +
-                            '<p style="color: #666;">Unable to load payment gateway</p>';
+                        console.error('Razorpay initialization error:', error);
+                        document.getElementById('payment-status').innerHTML = 
+                            '<div class="error-icon">⚠️</div>' +
+                            '<h2 style="color: #d32f2f;">Unable to Load Payment</h2>' +
+                            '<p style="margin: 20px 0;">Error: ' + error.message + '</p>' +
+                            '<p style="color: #999; font-size: 14px;">Please check your internet connection and try again</p>';
                     }}
                 </script>
             </body>
             </html>
             """
             
-            components.html(payment_html, height=300, scrolling=False)
+            # Render full screen payment (large height for full page effect)
+            components.html(payment_html, height=700, scrolling=False)
             
-            # Back button
-            if st.button("« Go Back", key="back_from_payment"):
-                st.session_state.show_payment = False
-                st.session_state.selected_amount = None
-                st.rerun()
-    
-    # Footer
-    st.markdown("---")
-    col_back1, col_back2, col_back3 = st.columns([1, 2, 1])
-    with col_back2:
-        if st.button("⬅️ Back to Dashboard", use_container_width=True, key="back_to_dash"):
-            st.session_state.page = 'home'
-            st.session_state.selected_amount = None
-            st.session_state.show_payment = False
-            st.rerun()
-    
-    st.markdown("""
-        <div style='text-align: center; padding: 20px; color: white;'>
-            <p style='font-size: 12px; opacity: 0.8;'>
-                🔒 Secure payment powered by Razorpay
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.stop()  # Stop here, don't show main app content
+            # Back button below payment
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            col_b1, col_b2, col_b3 = st.columns([1, 1, 1])
+            with col_b2:
+                if st.button("⬅️ Go Back", key="back_from_payment", use_container_width=True):
+                    st.session_state.show_payment = False
+                    st.session_state.selected_amount = None
+                    st.rerun()
+            
+            st.stop()  # Stop rendering anything else
 
 # ========== MAIN APP CONTENT (Only shows if page == 'home') ==========
 # Your rest of the app code here...
