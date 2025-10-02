@@ -114,6 +114,7 @@ with st.sidebar:
     
     support_button_compact()
     # ========== END ==========
+    st.markdown("---")
     st.markdown("### 👨‍💻 Developer Info")
     st.markdown("**Mr. Shivam Maheshwari**")
     st.write("🔗 [LinkedIn](https://www.linkedin.com/in/theshivammaheshwari)")
