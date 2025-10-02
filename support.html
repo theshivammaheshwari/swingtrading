@@ -103,6 +103,17 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(251, 176, 52, 0.5);
         }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -154,7 +165,7 @@
             </div>
         </div>
 
-        <div class="footer">
+                <div class="footer">
             🔒 Secure payment powered by Razorpay<br>
             All transactions are encrypted and secure
         </div>
@@ -214,7 +225,11 @@
         }
 
         function closeTab() {
+            // Try to close the tab
             window.close();
+            
+            // If window.close() doesn't work (some browsers block it)
+            // Redirect to dashboard after 500ms
             setTimeout(function() {
                 window.location.href = 'https://trading247.streamlit.app';
             }, 500);
@@ -233,7 +248,10 @@
                 "handler": function (response) {
                     alert("🎉 Thank you so much for your ₹" + amountInRupees + " support!\n\nYour contribution helps keep this project running.\n\nPayment ID: " + response.razorpay_payment_id);
                 },
-                // REMOVED PREFILL - User will enter their own details
+                "prefill": {
+                    "email": "247shivam@gmail.com",
+                    "contact": "+919468955596"
+                },
                 "notes": {
                     "amount": "₹" + amountInRupees,
                     "purpose": "Developer Support"
