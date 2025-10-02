@@ -69,46 +69,38 @@ Please consult a SEBI-registered financial adviser before making any investment 
 ---
 """
 
+# Initialize session state
+if 'show_payment' not in st.session_state:
+    st.session_state.show_payment = False
+if 'payment_amount' not in st.session_state:
+    st.session_state.payment_amount = 0
+    
 # ---------------- Sidebar: Developer + Settings + Disclaimer ----------------
 with st.sidebar:
-    # ========== SUPPORT THE DEVELOPER (WORKING DIALOG) ==========
+    # ========== SUPPORT THE DEVELOPER (SESSION STATE) ==========
     st.markdown("### ☕ Support the Developer")
     
-    @st.dialog("☕ Support the Developer", width="large")
-    def support_dialog():
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <h3>Thank you for considering support! 🙏</h3>
-            <p style='color: #666;'>Your contribution helps keep this project running and ad-free.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        
-        st.markdown("#### Choose an amount:")
-        
-        # Amount selection with immediate payment trigger
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("☕ ₹50 - Small Coffee", use_container_width=True, key="amt50"):
-                trigger_payment(5000)
-            
-            if st.button("☕☕☕ ₹250 - Large Coffee", use_container_width=True, key="amt250"):
-                trigger_payment(25000)
-        
-        with col2:
-            if st.button("☕☕ ₹100 - Medium Coffee", use_container_width=True, key="amt100"):
-                trigger_payment(10000)
-            
-            if st.button("🎁 ₹500 - Generous Support", use_container_width=True, key="amt500"):
-                trigger_payment(50000)
-        
-        st.markdown("---")
-        st.info("🔒 Secure payment powered by Razorpay")
+    # Amount selection
+    amount_options = {
+        "☕ Small Coffee - ₹50": 5000,
+        "☕☕ Medium Coffee - ₹100": 10000,
+        "☕☕☕ Large Coffee - ₹250": 25000,
+        "🎁 Generous Support - ₹500": 50000
+    }
     
-    def trigger_payment(amount):
-        """Trigger Razorpay payment"""
+    selected = st.selectbox(
+        "Choose amount:",
+        options=list(amount_options.keys()),
+        key="amount_select"
+    )
+    
+    if st.button("💳 Proceed to Payment", use_container_width=True, type="primary"):
+        st.session_state.show_payment = True
+        st.session_state.payment_amount = amount_options[selected]
+        st.rerun()
+    
+    # Show payment if triggered
+    if st.session_state.show_payment:
         payment_html = f"""
         <!DOCTYPE html>
         <html>
@@ -116,56 +108,58 @@ with st.sidebar:
             <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         </head>
         <body>
+            <div style="text-align: center; padding: 10px;">
+                <p style="color: #666;">Opening payment window...</p>
+            </div>
             <script>
-                var options = {{
-                    "key": "rzp_live_WbMdjDSTBNEsE3",
-                    "amount": {amount},
-                    "currency": "INR",
-                    "name": "Swing Trading Dashboard",
-                    "description": "Support the developer ☕",
-                    "image": "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
-                    "handler": function (response) {{
+                var rzp = new Razorpay({{
+                    key: "rzp_live_WbMdjDSTBNEsE3",
+                    amount: {st.session_state.payment_amount},
+                    currency: "INR",
+                    name: "Swing Trading Dashboard",
+                    description: "Support the developer ☕",
+                    image: "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                    handler: function (response) {{
                         alert("🎉 Thank you so much!\\n\\nPayment ID: " + response.razorpay_payment_id);
-                        window.parent.postMessage({{type: 'payment_success', id: response.razorpay_payment_id}}, '*');
+                        window.parent.postMessage({{type: 'close_payment'}}, '*');
                     }},
-                    "prefill": {{
-                        "email": "247shivam@gmail.com",
-                        "contact": "+919468955596"
+                    prefill: {{
+                        email: "247shivam@gmail.com",
+                        contact: "+919468955596"
                     }},
-                    "theme": {{
-                        "color": "#FFDD00"
-                    }},
-                    "modal": {{
-                        "ondismiss": function() {{
-                            console.log('Payment cancelled');
+                    theme: {{ color: "#FFDD00" }},
+                    modal: {{
+                        ondismiss: function() {{
+                            window.parent.postMessage({{type: 'close_payment'}}, '*');
                         }}
                     }}
-                }};
-                
-                var rzp = new Razorpay(options);
-                rzp.on('payment.failed', function (response){{
-                    alert("Payment Failed: " + response.error.description);
                 }});
                 
-                // Auto-open payment
+                rzp.on('payment.failed', function (r){{
+                    alert("Payment Failed: " + r.error.description);
+                    window.parent.postMessage({{type: 'close_payment'}}, '*');
+                }});
+                
+                // Auto open after 500ms
                 setTimeout(function() {{
                     rzp.open();
-                }}, 100);
+                }}, 500);
             </script>
         </body>
         </html>
         """
-        components.html(payment_html, height=0)
-        st.success(f"Payment of ₹{amount/100} initiated!")
+        components.html(payment_html, height=100)
+        
+        # Reset button
+        if st.button("Close Payment", key="close_pay"):
+            st.session_state.show_payment = False
+            st.rerun()
     
-    # Trigger button
-    if st.button("☕ Support the Developer", use_container_width=True, type="primary"):
-        support_dialog()
-    
-    st.caption("Buy me a coffee 🙏")
+    st.caption("Support this free project 🙏")
     # ========== END SUPPORT ==========
     
     st.markdown("---")
+    
     st.markdown("### 👨‍💻 Developer Info")
     st.markdown("**Mr. Shivam Maheshwari**")
     st.write("🔗 [LinkedIn](https://www.linkedin.com/in/theshivammaheshwari)")
