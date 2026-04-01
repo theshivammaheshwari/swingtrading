@@ -1,4 +1,4 @@
-Symbol,NAME OF COMPANY
+SYMBOL,NAME OF COMPANY
 20MICRONS,20 Microns Limited
 21STCENMGM,21st Century Management Services Limited
 360ONE,360 ONE WAM LIMITED
@@ -6,22 +6,22 @@ Symbol,NAME OF COMPANY
 3MINDIA,3M India Limited
 3PLAND,3P Land Holdings Limited
 5PAISA,5Paisa Capital Limited
+5PAISA-RE,5Paisa Capital Limited-RE
 63MOONS,63 moons technologies limited
 A2ZINFRA,A2Z Infra Engineering Limited
 AAATECH,AAA Technologies Limited
 AADHARHFC,Aadhar Housing Finance Limited
 AAKASH,Aakash Exploration Services Limited
 AAREYDRUGS,Aarey Drugs & Pharmaceuticals Limited
+AARNAV,Aarnav Fashions Limited
 AARON,Aaron Industries Limited
 AARTECH,Aartech Solonics Limited
 AARTIDRUGS,Aarti Drugs Limited
 AARTIIND,Aarti Industries Limited
 AARTIPHARM,Aarti Pharmalabs Limited
 AARTISURF,Aarti Surfactants Limited
-AARVEEDEN,Aarvee Denims & Exports Limited
 AARVI,Aarvi Encon Limited
 AAVAS,Aavas Financiers Limited
-ABAN,Aban Offshore Limited
 ABB,ABB India Limited
 ABBOTINDIA,Abbott India Limited
 ABCAPITAL,Aditya Birla Capital Limited
@@ -40,7 +40,6 @@ ACE,Action Construction Equipment Limited
 ACEINTEG,Ace Integrated Solutions Limited
 ACI,Archean Chemical Industries Limited
 ACL,Andhra Cements Limited
-ACLGATI,Allcargo Gati Limited
 ACMESOLAR,Acme Solar Holdings Limited
 ACUTAAS,Acutaas Chemicals Limited
 ADANIENSOL,Adani Energy Solutions Limited
@@ -53,10 +52,15 @@ ADL,Archidply Decor Limited
 ADOR,Ador Welding Limited
 ADROITINFO,Adroit Infotech Limited
 ADSL,Allied Digital Services Limited
+ADVAIT,Advait Energy Transitions Limited
+ADVANCE,Advance Agrolife Limited
 ADVANIHOTR,Advani Hotels & Resorts (India) Limited
+ADVENTHTL,Advent Hotels International Limited
 ADVENZYMES,Advanced Enzyme Technologies Limited
 AEGISLOG,Aegis Logistics Limited
 AEGISVOPAK,Aegis Vopak Terminals Limited
+AEPL,Artemis Electricals and Projects Limited
+AEQUS,Aequs Limited
 AEROENTER,Aeroflex Enterprises Limited
 AEROFLEX,Aeroflex Industries Limited
 AERONEU,Aeroflex Neu Limited
@@ -96,6 +100,7 @@ AKZOINDIA,Akzo Nobel India Limited
 ALANKIT,Alankit Limited
 ALBERTDAVD,Albert David Limited
 ALEMBICLTD,Alembic Limited
+ALGOQUANT,Algoquant Fintech Limited
 ALICON,Alicon Castalloy Limited
 ALIVUS,Alivus Life Sciences Limited
 ALKALI,Alkali Metals Limited
@@ -108,7 +113,7 @@ ALMONDZ,Almondz Global Securities Limited
 ALOKINDS,Alok Industries Limited
 ALPA,Alpa Laboratories Limited
 ALPHAGEO,Alphageo (India) Limited
-ALPSINDUS,Alps Industries Limited
+AMAGI,Amagi Media Labs Limited
 AMANTA,Amanta Healthcare Limited
 AMBER,Amber Enterprises India Limited
 AMBICAAGAR,Ambica Agarbathies & Aroma industries Limited
@@ -146,6 +151,7 @@ APOLLOTYRE,Apollo Tyres Limited
 APOLSINHOT,Apollo Sindoori Hotels Limited
 APTECHT,Aptech Limited
 APTUS,Aptus Value Housing Finance India Limited
+AQYLON,Aqylon Nexus Limited
 ARCHIDPLY,Archidply Industries Limited
 ARCHIES,Archies Limited
 ARE&M,Amara Raja Energy & Mobility Limited
@@ -154,12 +160,13 @@ ARFIN,Arfin India Limited
 ARIES,Aries Agro Limited
 ARIHANTCAP,Arihant Capital Markets Limited
 ARIHANTSUP,Arihant Superstructures Limited
-ARISINFRA,Arisinfra Solutions Limited
+ARIS,Arisinfra Solutions Limited
 ARKADE,Arkade Developers Limited
 ARMANFIN,Arman Financial Services Limited
 AROGRANITE,Aro Granite Industries Limited
 ARROWGREEN,Arrow Greentech Limited
 ARSHIYA,Arshiya Limited
+ARSSBL,Anand Rathi Share and Stock Brokers Limited
 ARTEMISMED,Artemis Medicare Services Limited
 ARTNIRMAN,Art Nirman Limited
 ARVEE,Arvee Laboratories (India) Limited
@@ -195,10 +202,12 @@ ATGL,Adani Total Gas Limited
 ATHERENERG,Ather Energy Limited
 ATL,Allcargo Terminals Limited
 ATLANTAA,ATLANTAA LIMITED
+ATLANTAELE,Atlanta Electricals Limited
 ATLASCYCLE,Atlas Cycles (Haryana) Limited
 ATUL,Atul Limited
 ATULAUTO,Atul Auto Limited
 AUBANK,AU Small Finance Bank Limited
+AURIGROW,Auri Grow India Limited
 AURIONPRO,Aurionpro Solutions Limited
 AUROPHARMA,Aurobindo Pharma Limited
 AURUM,Aurum PropTech Limited
@@ -220,6 +229,7 @@ AWL,AWL Agri Business Limited
 AXISBANK,Axis Bank Limited
 AXISCADES,AXISCADES Technologies Limited
 AXITA,Axita Cotton Limited
+AYE,Aye Finance Limited
 AYMSYNTEX,AYM Syntex Limited
 AZAD,Azad Engineering Limited
 BAFNAPH,Bafna Pharmaceuticals Limited
@@ -256,18 +266,18 @@ BANKBARODA,Bank of Baroda
 BANKINDIA,Bank of India
 BANSALWIRE,Bansal Wire Industries Limited
 BANSWRAS,Banswara Syntex Limited
-BARBEQUE,Barbeque Nation Hospitality Limited
 BASF,BASF India Limited
 BASML,Bannari Amman Spinning Mills Limited
 BATAINDIA,Bata India Limited
 BAYERCROP,Bayer Cropscience Limited
 BBL,Bharat Bijlee Limited
 BBOX,Black Box Limited
-BBTC,Bombay Burmah Trading Corporation Limited
+BBTC,The Bombay Burmah Trading Corporation Limited
 BBTCL,B&B Triplewall Containers Limited
 BCG,Brightcom Group Limited
 BCLIND,Bcl Industries Limited
 BCONCEPTS,Brand Concepts Limited
+BCPL,BCPL Railway Infrastructure Limited
 BDL,Bharat Dynamics Limited
 BEARDSELL,Beardsell Limited
 BECTORFOOD,Mrs. Bectors Food Specialities Limited
@@ -279,6 +289,7 @@ BEML,BEML Limited
 BEPL,Bhansali Engineering Polymers Limited
 BERGEPAINT,Berger Paints (I) Limited
 BESTAGRO,Best Agrolife Limited
+BETA,Beta Drugs Limited
 BFINVEST,BF Investment Limited
 BFUTILITIE,BF Utilities Limited
 BGRENERGY,BGR Energy Systems Limited
@@ -286,6 +297,7 @@ BHAGCHEM,Bhagiradha Chemicals & Industries Limited
 BHAGERIA,Bhageria Industries Limited
 BHAGYANGR,Bhagyanagar India Limited
 BHANDARI,Bhandari Hosiery Exports Limited
+BHARATCOAL,Bharat Coking Coal Limited
 BHARATFORG,Bharat Forge Limited
 BHARATGEAR,Bharat Gears Limited
 BHARATRAS,Bharat Rasayan Limited
@@ -317,13 +329,16 @@ BLUEJET,Blue Jet Healthcare Limited
 BLUESTARCO,Blue Star Limited
 BLUESTONE,BlueStone Jewellery and Lifestyle Limited
 BLUSPRING,Bluspring Enterprises Limited
+BMWVENTLTD,BMW Ventures Limited
 BODALCHEM,Bodal Chemicals Limited
 BOHRAIND,Bohra Industries Limited
 BOMDYEING,Bombay Dyeing & Mfg Company Limited
+BONLON,Bonlon Industries Limited
 BORANA,Borana Weaves Limited
 BOROLTD,Borosil Limited
 BORORENEW,BOROSIL RENEWABLES LIMITED
 BOROSCI,Borosil Scientific Limited
+BOSCH-HCIL,BOSCH HOME COMFORT INDIA LIMITED
 BOSCHLTD,Bosch Limited
 BPCL,Bharat Petroleum Corporation Limited
 BPL,BPL Limited
@@ -337,6 +352,7 @@ BSHSL,Bombay Super Hybrid Seeds Limited
 BSL,BSL Limited
 BSOFT,BIRLASOFT LIMITED
 BTML,Bodhi Tree Multimedia Limited
+BUILDPRO,Shankara Buildpro Limited
 BUTTERFLY,Butterfly Gandhimathi Appliances Limited
 BVCL,Barak Valley Cements Limited
 BYKE,The Byke Hospitality Ltd
@@ -346,8 +362,10 @@ CAMPUS,Campus Activewear Limited
 CAMS,Computer Age Management Services Limited
 CANBK,Canara Bank
 CANFINHOME,Can Fin Homes Limited
+CANHLIFE,Canara HSBC Life Insurance Company Limited
 CANTABIL,Cantabil Retail India Limited
 CAPACITE,Capacit'e Infraprojects Limited
+CAPILLARY,Capillary Technologies India Limited
 CAPITALSFB,Capital Small Finance Bank Limited
 CAPLIPOINT,Caplin Point Laboratories Limited
 CAPTRUST,Capital Trust Limited
@@ -357,12 +375,14 @@ CARRARO,Carraro India Limited
 CARTRADE,Cartrade Tech Limited
 CARYSIL,CARYSIL LIMITED
 CASTROLIND,Castrol India Limited
+CCAVENUE,AvenuesAI Limited
 CCCL,Consolidated Construction Consortium Limited
 CCHHL,Country Club Hospitality & Holidays Limited
 CCL,CCL Products (India) Limited
 CDSL,Central Depository Services (India) Limited
 CEATLTD,CEAT Limited
 CEIGALL,Ceigall India Limited
+CEINSYS,Ceinsys Tech Limited
 CELEBRITY,Celebrity Fashions Limited
 CELLO,Cello World Limited
 CEMPRO,Cemindia Projects Limited
@@ -396,10 +416,14 @@ CIGNITITEC,Cigniti Technologies Limited
 CINELINE,Cineline India Limited
 CINEVISTA,Cinevista Limited
 CIPLA,Cipla Limited
+CLCIND,CLC Industries Limited
 CLEAN,Clean Science and Technology Limited
+CLEANMAX,Clean Max Enviro Energy Solutions Limited
 CLEDUCATE,CL Educate Limited
 CLSEL,Chaman Lal Setia Exports Limited
+CMPDI,Central Mine Planning & Design Institute Limited
 CMSINFO,CMS Info Systems Limited
+CNL,Creative Newtech Limited
 COALINDIA,Coal India Limited
 COASTCORP,Coastal Corporation Limited
 COCHINSHIP,Cochin Shipyard Limited
@@ -418,13 +442,14 @@ CONTROLPR,Control Print Limited
 CORALFINAC,Coral India Finance & Housing Limited
 CORDSCABLE,Cords Cable Industries Limited
 COROMANDEL,Coromandel International Limited
+CORONA,CORONA Remedies Limited
 COSMOFIRST,COSMO FIRST LIMITED
 COUNCODOS,Country Condo's Limited
 CPCAP,CP Capital Limited
 CPEDU,Career Point Edutech Limited
 CPPLUS,Aditya Infotech Limited
 CRAFTSMAN,Craftsman Automation Limited
-CREATIVE,Creative Newtech Limited
+CRAMC,Canara Robeco Asset Management Company Limited
 CREATIVEYE,Creative Eye Limited
 CREDITACC,CREDITACCESS GRAMEEN LIMITED
 CREST,Crest Ventures Limited
@@ -466,6 +491,7 @@ DCM,DCM  Limited
 DCMFINSERV,DCM Financial Services Limited
 DCMNVL,DCM Nouvelle Limited
 DCMSHRIRAM,DCM Shriram Limited
+DCMSIL,DCM Shriram International Limited
 DCMSRIND,DCM Shriram Industries Limited
 DCW,DCW Limited
 DCXINDIA,DCX Systems Limited
@@ -488,7 +514,6 @@ DEVYANI,Devyani International Limited
 DGCONTENT,Digicontent Limited
 DHAMPURSUG,Dhampur Sugar Mills Limited
 DHANBANK,Dhanlaxmi Bank Limited
-DHANI,Dhani Services Limited
 DHANUKA,Dhanuka Agritech Limited
 DHARAN,DHARAN INFRA-EPC LIMITED
 DHARMAJ,Dharmaj Crop Guard Limited
@@ -503,7 +528,6 @@ DIGIDRIVE,Digidrive Distributors Limited
 DIGISPICE,DiGiSPICE Technologies Limited
 DIGITIDE,Digitide Solutions Limited
 DIGJAMLMTD,Digjam Limited
-DIL,Debock Industries Limited
 DISHTV,Dish TV India Limited
 DIVGIITTS,Divgi Torqtransfer Systems Limited
 DIVISLAB,Divi's Laboratories Limited
@@ -527,6 +551,7 @@ DRCSYSTEMS,DRC Systems India Limited
 DREAMFOLKS,Dreamfolks Services Limited
 DREDGECORP,Dredging Corporation of India Limited
 DRREDDY,Dr. Reddy's Laboratories Limited
+DSFCL,DCM Shriram Fine Chemicals Limited
 DSSL,Dynacons Systems & Solutions Limited
 DTIL,Dhunseri Tea & Industries Limited
 DUCON,Ducon Infratechnologies Limited
@@ -537,6 +562,7 @@ DYNAMATECH,Dynamatic Technologies Limited
 DYNPRO,Dynemic Products Limited
 E2E,E2E Networks Limited
 EASEMYTRIP,Easy Trip Planners Limited
+EASTSILK,Eastern Silk Industries Limited
 EBGNG,GNG Electronics Limited
 ECLERX,eClerx Services Limited
 ECOSMOBLTY,Ecos (India) Mobility & Hospitality Limited
@@ -566,6 +592,7 @@ EMCURE,Emcure Pharmaceuticals Limited
 EMIL,Electronics Mart India Limited
 EMKAY,Emkay Global Financial Services Limited
 EMMBI,Emmbi Industries Limited
+EMMVEE,Emmvee Photovoltaic Power Limited
 EMSLIMITED,EMS Limited
 EMUDHRA,eMudhra Limited
 ENDURANCE,Endurance Technologies Limited
@@ -575,6 +602,7 @@ ENIL,Entertainment Network (India) Limited
 ENRIN,Siemens Energy India Limited
 ENTERO,Entero Healthcare Solutions Limited
 EPACK,EPACK Durable Limited
+EPACKPEB,EPack Prefab Technologies Limited
 EPIGRAL,Epigral Limited
 EPL,EPL Limited
 EQUIPPP,Equippp Social Impact Technologies Limited
@@ -596,10 +624,12 @@ EVEREADY,Eveready Industries India Limited
 EVERESTIND,Everest Industries Limited
 EXCEL,Excel Realty N Infra Limited
 EXCELINDUS,Excel Industries Limited
+EXCELSOFT,Excelsoft Technologies Limited
 EXICOM,Exicom Tele-Systems Limited
 EXIDEIND,Exide Industries Limited
 EXPLEOSOL,Expleo Solutions Limited
 EXXARO,Exxaro Tiles Limited
+FABTECH,Fabtech Technologies Limited
 FACT,Fertilizers and Chemicals Travancore Limited
 FAIRCHEMOR,Fairchem Organics Limited
 FAZE3Q,Faze Three Limited
@@ -616,6 +646,7 @@ FILATEX,Filatex India Limited
 FILATFASH,Filatex Fashions Limited
 FINCABLES,Finolex Cables Limited
 FINEORG,Fine Organic Industries Limited
+FINKURVE,Finkurve Financial Services Limited
 FINOPB,Fino Payments Bank Limited
 FINPIPE,Finolex Industries Limited
 FIRSTCRY,Brainbees Solutions Limited
@@ -632,7 +663,7 @@ FOODSIN,Foods & Inns Limited
 FORCEMOT,FORCE MOTORS LTD
 FORTIS,Fortis Healthcare Limited
 FOSECOIND,Foseco India Limited
-FSC,Future Supply Chain Solutions Limited
+FRACTAL,Fractal Analytics Limited
 FSL,Firstsource Solutions Limited
 FUSION,Fusion Finance Limited
 GABRIEL,Gabriel India Limited
@@ -645,6 +676,7 @@ GANDHAR,Gandhar Oil Refinery (India) Limited
 GANDHITUBE,Gandhi Special Tubes Limited
 GANECOS,Ganesha Ecosphere Limited
 GANESHBE,Ganesh Benzoplast Limited
+GANESHCP,Ganesh Consumer Products Limited
 GANESHHOU,GANESH HOUSING LIMITED
 GANGAFORGE,Ganga Forging Limited
 GANGESSECU,Ganges Securities Limited
@@ -653,6 +685,7 @@ GARUDA,Garuda Construction and Engineering Limited
 GATECH,GACM Technologies Limited
 GATECHDVR,GACM Technologies Limited
 GATEWAY,Gateway Distriparks Limited
+GAUDIUMIVF,Gaudium IVF and Women Health Limited
 GAYAHWS,Gayatri Highways Limited
 GCSL,Gretex Corporate Services Limited
 GEECEE,GeeCee Ventures Limited
@@ -660,6 +693,7 @@ GEEKAYWIRE,Geekay Wires Limited
 GEMAROMA,Gem Aromatics Limited
 GENCON,Generic Engineering Construction and Projects Limited
 GENESYS,Genesys International Corporation Limited
+GENSOL,Gensol Engineering Limited
 GENUSPAPER,Genus Paper & Boards Limited
 GENUSPOWER,Genus Power Infrastructures Limited
 GEOJITFSL,Geojit Financial Services Limited
@@ -668,12 +702,14 @@ GFLLIMITED,GFL Limited
 GHCL,GHCL Limited
 GHCLTEXTIL,GHCL Textiles Limited
 GICHSGFIN,GIC Housing Finance Limited
+GICL,Globe International Carriers Limited
 GICRE,General Insurance Corporation of India
 GILLANDERS,Gillanders Arbuthnot & Company Limited
 GILLETTE,Gillette India Limited
 GINNIFILA,Ginni Filaments Limited
 GIPCL,Gujarat Industries Power Company Limited
 GKENERGY,GK Energy Limited
+GKSL,Gujarat Kidney And Super Speciality Limited
 GKWLIMITED,GKW Limited
 GLAND,Gland Pharma Limited
 GLAXO,GlaxoSmithKline Pharmaceuticals Limited
@@ -682,10 +718,11 @@ GLFL,Gujarat Lease Financing Limited
 GLOBAL,Global Education Limited
 GLOBALE,Globale Tessile Limited
 GLOBALVECT,Global Vectra Helicorp Limited
-GLOBE,Globe Textiles (India) Limited
+GLOBE,GLOBE ENTERPRISES (INDIA) LIMITED
 GLOBECIVIL,Globe Civil Projects Limited
 GLOBUSSPR,Globus Spirits Limited
 GLOSTERLTD,Gloster Limited
+GLOTTIS,Glottis Limited
 GMBREW,GM Breweries Limited
 GMDCLTD,Gujarat Mineral Development Corporation Limited
 GMMPFAUDLR,GMM Pfaudler Limited
@@ -698,13 +735,11 @@ GOCLCORP,GOCL Corporation Limited
 GOCOLORS,Go Fashion (India) Limited
 GODAVARIB,Godavari Biorefineries Limited
 GODFRYPHLP,Godfrey Phillips India Limited
-GODHA,Godha Cabcon & Insulation Limited
 GODIGIT,Go Digit General Insurance Limited
 GODREJAGRO,Godrej Agrovet Limited
 GODREJCP,Godrej Consumer Products Limited
 GODREJIND,Godrej Industries Limited
 GODREJPROP,Godrej Properties Limited
-GOENKA,Goenka Diamond and Jewels Limited
 GOKEX,Gokaldas Exports Limited
 GOKUL,Gokul Refoils and Solvent Limited
 GOKULAGRO,Gokul Agro Resources Limited
@@ -731,11 +766,13 @@ GRINDWELL,Grindwell Norton Limited
 GRINFRA,G R Infraprojects Limited
 GRMOVER,GRM Overseas Limited
 GROBTEA,The Grob Tea Company Limited
+GROWW,Billionbrains Garage Ventures Limited
 GRPLTD,GRP Limited
 GRSE,Garden Reach Shipbuilders & Engineers Limited
 GRWRHITECH,Garware Hi-Tech Films Limited
 GSFC,Gujarat State Fertilizers & Chemicals Limited
 GSLSU,Global Surfaces Limited
+GSPCROP,GSP Crop Science Limited
 GSPL,Gujarat State Petronet Limited
 GSS,GSS Infotech Limited
 GTECJAINX,G-TEC JAINX EDUCATION LIMITED
@@ -756,6 +793,8 @@ GVPIL,GE Power India Limited
 GVPTECH,GVP Infotech Limited
 GVT&D,GE Vernova T&D India Limited
 HAL,Hindustan Aeronautics Limited
+HALDER,Halder Venture Limited
+HALEOSLABS,HALEOS LABS LIMITED
 HAPPSTMNDS,Happiest Minds Technologies Limited
 HAPPYFORGE,Happy Forgings Limited
 HARDWYN,Hardwyn India Limited
@@ -783,11 +822,9 @@ HEG,HEG Limited
 HEIDELBERG,HeidelbergCement India Limited
 HEMIPROP,Hemisphere Properties India Limited
 HERANBA,Heranba Industries Limited
-HERCULES,Hercules Hoists Limited
 HERITGFOOD,Heritage Foods Limited
 HEROMOTOCO,Hero MotoCorp Limited
 HESTERBIO,Hester Biosciences Limited
-HEUBACHIND,Heubach Colorants India Limited
 HEXATRADEX,Hexa Tradex Limited
 HEXT,Hexaware Technologies Limited
 HFCL,HFCL Limited
@@ -802,7 +839,6 @@ HINDALCO,Hindalco Industries Limited
 HINDCOMPOS,Hindustan Composites Limited
 HINDCON,Hindcon Chemicals Limited
 HINDCOPPER,Hindustan Copper Limited
-HINDMOTORS,Hindustan Motors Limited
 HINDOILEXP,Hindustan Oil Exploration Company Limited
 HINDPETRO,Hindustan Petroleum Corporation Limited
 HINDUNILVR,Hindustan Unilever Limited
@@ -833,8 +869,10 @@ HUDCO,Housing & Urban Development Corporation Limited
 HUHTAMAKI,Huhtamaki India Limited
 HYBRIDFIN,Hybrid Financial Services Limited
 HYUNDAI,Hyundai Motor India Limited
+IBULLSLTD,Indiabulls Limited
 ICDSLTD,ICDS Limited
 ICEMAKE,Ice Make Refrigeration Limited
+ICICIAMC,ICICI Prudential Asset Management Company Limited
 ICICIBANK,ICICI Bank Limited
 ICICIGI,ICICI Lombard General Insurance Company Limited
 ICICIPRULI,ICICI Prudential Life Insurance Company Limited
@@ -844,7 +882,6 @@ IDBI,IDBI Bank Limited
 IDEA,Vodafone Idea Limited
 IDEAFORGE,Ideaforge Technology Limited
 IDFCFIRSTB,IDFC First Bank Limited
-IEL,Indiabulls Enterprises Limited
 IEX,Indian Energy Exchange Limited
 IFBAGRO,IFB Agro Industries Limited
 IFBIND,IFB Industries Limited
@@ -866,6 +903,7 @@ IMAGICAA,Imagicaaworld Entertainment Limited
 IMFA,Indian Metals & Ferro Alloys Limited
 IMPAL,India Motor Parts and Accessories Limited
 IMPEXFERRO,Impex Ferro Tech Limited
+INA,Insolation Energy Limited
 INCREDIBLE,INCREDIBLE INDUSTRIES LIMITED
 INDBANK,Indbank Merchant Banking Services Limited
 INDGN,Indegene Limited
@@ -896,13 +934,13 @@ INDSWFTLAB,Ind-Swift Laboratories Limited
 INDTERRAIN,Indian Terrain Fashions Limited
 INDUSINDBK,IndusInd Bank Limited
 INDUSTOWER,Indus Towers Limited
-INFIBEAM,Infibeam Avenues Limited
 INFOBEAN,InfoBeans Technologies Limited
 INFOMEDIA,Infomedia Press Limited
 INFY,Infosys Limited
 INGERRAND,Ingersoll Rand (India) Limited
 INNOVACAP,Innova Captab Limited
 INNOVANA,Innovana Thinklabs Limited
+INNOVISION,Innovision Limited
 INOXGREEN,Inox Green Energy Services Limited
 INOXINDIA,INOX India Limited
 INOXWIND,Inox Wind Limited
@@ -924,7 +962,7 @@ IRCON,Ircon International Limited
 IRCTC,Indian Railway Catering And Tourism Corporation Limited
 IREDA,Indian Renewable Energy Development Agency Limited
 IRFC,Indian Railway Finance Corporation Limited
-IRIS,Iris Business Services Limited
+IRIS,IRIS RegTech Solutions Limited
 IRISDOREME,Iris Clothings Limited
 IRMENERGY,IRM Energy Limited
 ISFT,Intrasoft Technologies Limited
@@ -944,16 +982,18 @@ JAGRAN,Jagran Prakashan Limited
 JAGSNPHARM,Jagsonpal Pharmaceuticals Limited
 JAIBALAJI,Jai Balaji Industries Limited
 JAICORPLTD,Jai Corp Limited
+JAINREC,Jain Resource Recycling Limited
 JAIPURKURT,Nandani Creation Limited
 JAMNAAUTO,Jamna Auto Industries Limited
+JARO,Jaro Institute of Technology Management and Research Limited
 JASH,Jash Engineering Limited
 JAYAGROGN,Jayant Agro Organics Limited
 JAYBARMARU,Jay Bharat Maruti Limited
+JAYKAY,Jaykay Enterprises Limited
 JAYNECOIND,Jayaswal Neco Industries Limited
 JAYSREETEA,Jayshree Tea & Industries Limited
 JBCHEPHARM,JB Chemicals & Pharmaceuticals Limited
 JBMA,JBM Auto Limited
-JCHAC,Johnson Controls - Hitachi Air Conditioning India Limited
 JETFREIGHT,Jet Freight Logistics Limited
 JGCHEM,J.G.Chemicals Limited
 JHS,JHS Svendgaard Laboratories Limited
@@ -969,6 +1009,7 @@ JISLJALEQS,Jain Irrigation Systems Limited
 JITFINFRA,JITF Infralogistics Limited
 JKCEMENT,JK Cement Limited
 JKIL,J.Kumar Infraprojects Limited
+JKIPL,Jinkushal Industries Limited
 JKLAKSHMI,JK Lakshmi Cement Limited
 JKPAPER,JK Paper Limited
 JKTYRE,JK Tyre & Industries Limited
@@ -1051,6 +1092,7 @@ KITEX,Kitex Garments Limited
 KKCL,Kewal Kiran Clothing Limited
 KMEW,Knowledge Marine & Engineering Works Limited
 KMSUGAR,K.M.Sugar Mills Limited
+KNAGRI,KN Agri Resources Limited
 KNRCON,KNR Constructions Limited
 KOHINOOR,Kohinoor Foods Limited
 KOKUYOCMLN,Kokuyo Camlin Limited
@@ -1060,6 +1102,7 @@ KOTAKBANK,Kotak Mahindra Bank Limited
 KOTARISUG,Kothari Sugars And Chemicals Limited
 KOTHARIPET,Kothari Petrochemicals Limited
 KOTHARIPRO,Kothari Products Limited
+KOTYARK,Kotyark Industries Limited
 KPEL,K.P. Energy Limited
 KPIGREEN,KPI Green Energy Limited
 KPIL,Kalpataru Projects International Limited
@@ -1070,6 +1113,7 @@ KREBSBIO,Krebs Biochemicals and Industries Limited
 KRIDHANINF,Kridhan Infra Limited
 KRISHANA,Krishana Phoschem Limited
 KRISHIVAL,Krishival Foods Limited
+KRISHNADEF,Krishna Defence And Allied Industries Limited
 KRITI,Kriti Industries (India) Limited
 KRITIKA,Kritika Wires Limited
 KRITINUT,Kriti Nutrients Limited
@@ -1080,12 +1124,16 @@ KRSNAA,Krsnaa Diagnostics Limited
 KRYSTAL,Krystal Integrated Services Limited
 KSB,Ksb Limited
 KSCL,Kaveri Seed Company Limited
+KSHINTL,KSH International Limited
 KSHITIJPOL,Kshitij Polyline Limited
 KSL,Kalyani Steels Limited
 KSOLVES,Ksolves India Limited
+KSR,KSR Footwear Limited
 KTKBANK,The Karnataka Bank Limited
 KUANTUM,Kuantum Papers Limited
+KWIL,Kwality Wall's (India) Limited
 LAGNAM,Lagnam Spintex Limited
+LAKPRE,Lakshmi Precision Screws Limited
 LAL,Lorenzini Apparels Limited
 LALPATHLAB,Dr. Lal Path Labs Ltd.
 LAMBODHARA,Lambodhara Textiles Limited
@@ -1100,10 +1148,13 @@ LAXMICOT,Laxmi Cotspin Limited
 LAXMIDENTL,Laxmi Dental Limited
 LAXMIINDIA,Laxmi India Finance Limited
 LCCINFOTEC,LCC Infotech Limited
+LEMERITE,Le Merite Exports Limited
 LEMONTREE,Lemon Tree Hotels Limited
+LENSKART,Lenskart Solutions Limited
 LEXUS,Lexus Granito (India) Limited
 LFIC,Lakshmi Finance & Industrial Corporation Limited
 LGBBROSLTD,LG Balakrishnan & Bros Limited
+LGEINDIA,LG Electronics India Limited
 LGHL,Laxmi Goldorna House Limited
 LIBAS,Libas Consumer Products Limited
 LIBERTSHOE,Liberty Shoes Limited
@@ -1128,7 +1179,7 @@ LPDC,Landmark Property Development Company Limited
 LT,Larsen & Toubro Limited
 LTF,L&T Finance Limited
 LTFOODS,LT Foods Limited
-LTIM,LTIMindtree Limited
+LTM,LTIMindtree Limited
 LTTS,L&T Technology Services Limited
 LUMAXIND,Lumax Industries Limited
 LUMAXTECH,Lumax Auto Technologies Limited
@@ -1147,6 +1198,7 @@ MADRASFERT,Madras Fertilizers Limited
 MAGADSUGAR,Magadh Sugar & Energy Limited
 MAGNUM,Magnum Ventures Limited
 MAHABANK,Bank of Maharashtra
+MAHAPE-RE,Maha Rashtra Apex Corporation Limited-RE
 MAHAPEXLTD,Maha Rashtra Apex Corporation Limited
 MAHASTEEL,Mahamaya Steel Industries Limited
 MAHEPC,Mahindra EPC Irrigation Limited
@@ -1168,7 +1220,6 @@ MANAPPURAM,Manappuram Finance Limited
 MANBA,Manba Finance Limited
 MANCREDIT,Mangal Credit and Fincorp Limited
 MANGALAM,Mangalam Drugs And Organics Limited
-MANGCHEFER,Mangalore Chemicals & Fertilizers Limited
 MANGLMCEM,Mangalam Cement Limited
 MANINDS,Man Industries (India) Limited
 MANINFRA,Man Infraconstruction Limited
@@ -1183,7 +1234,9 @@ MARALOVER,Maral Overseas Limited
 MARATHON,Marathon Nextgen Realty Limited
 MARICO,Marico Limited
 MARINE,Marine Electricals (India) Limited
+MARKOLINES,Markolines Pavement Technologies Limited
 MARKSANS,Marksans Pharma Limited
+MARSONS,Marsons Limited
 MARUTI,Maruti Suzuki India Limited
 MASFIN,MAS Financial Services Limited
 MASKINVEST,Mask Investments Limited
@@ -1209,7 +1262,7 @@ MEDIASSIST,Medi Assist Healthcare Services Limited
 MEDICAMEQ,Medicamen Biotech Limited
 MEDICO,Medico Remedies Limited
 MEDPLUS,Medplus Health Services Limited
-MEGASOFT,Megasoft Limited
+MEESHO,Meesho Limited
 MEGASTAR,Megastar Foods Limited
 MEIL,Mangal Electrical Industries Limited
 MENONBE,Menon Bearings Limited
@@ -1224,6 +1277,7 @@ MHLXMIRU,Mahalaxmi Rubtech Limited
 MHRIL,Mahindra Holidays & Resorts India Limited
 MICEL,MIC Electronics Limited
 MIDHANI,Mishra Dhatu Nigam Limited
+MIDWESTLTD,Midwest Limited
 MINDACORP,Minda Corporation Limited
 MINDTECK,Mindteck (India) Limited
 MIRCELECTR,MIRC Electronics Limited
@@ -1235,7 +1289,9 @@ MMFL,MM Forgings Limited
 MMP,MMP Industries Limited
 MMTC,MMTC Limited
 MOBIKWIK,One Mobikwik Systems Limited
+MODINATUR,Modi Naturals Limited
 MODIRUBBER,Modi Rubber Limited
+MODIS,Modis Navnirman Limited
 MODISONLTD,MODISON LIMITED
 MODTHREAD,Modern Threads (India) Limited
 MOHITIND,Mohit Industries Limited
@@ -1245,6 +1301,7 @@ MOL,Meghmani Organics Limited
 MOLDTECH,Mold-Tek Technologies Limited
 MOLDTKPAC,Mold-Tek Packaging Limited
 MONARCH,Monarch Networth Capital Limited
+MONEYBOXX,Moneyboxx Finance Limited
 MONTECARLO,Monte Carlo Fashions Limited
 MORARJEE,Morarjee Textiles Limited
 MOREPENLAB,Morepen Laboratories Limited
@@ -1306,12 +1363,12 @@ NDL,Nandan Denim Limited
 NDLVENTURE,NDL Ventures Limited
 NDRAUTO,Ndr Auto Components Limited
 NDTV,New Delhi Television Limited
-NDTV-RE,New Delhi Television Limited-RE
 NECCLTD,North Eastern Carrying Corporation Limited
 NECLIFE,Nectar Lifesciences Limited
 NELCAST,Nelcast Limited
 NELCO,NELCO Limited
 NEOGEN,Neogen Chemicals Limited
+NEPHROPLUS,Nephrocare Health Services Limited
 NESCO,Nesco Limited
 NESTLEIND,Nestle India Limited
 NETWEB,Netweb Technologies India Limited
@@ -1373,8 +1430,10 @@ OLAELEC,Ola Electric Mobility Limited
 OLECTRA,Olectra Greentech Limited
 OMAXAUTO,Omax Autos Limited
 OMAXE,Omaxe Limited
+OMFREIGHT,Om Freight Forwarders Limited
 OMINFRAL,OM INFRA LIMITED
 OMKARCHEM,Omkar Speciality Chemicals Limited
+OMNI,Omnitech Engineering Limited
 ONELIFECAP,Onelife Capital Advisors Limited
 ONEPOINT,One Point One Solutions Limited
 ONESOURCE,Onesource Specialty Pharma Limited
@@ -1396,6 +1455,7 @@ ORIENTLTD,Orient Press Limited
 ORIENTPPR,Orient Paper & Industries Limited
 ORIENTTECH,Orient Technologies Limited
 ORISSAMINE,The Orissa Minerals Development Company Limited
+ORKLAINDIA,Orkla India Limited
 ORTEL,Ortel Communications Limited
 ORTINGLOBE,ORTIN GLOBAL LIMITED
 OSIAHYPER,Osia Hyper Retail Limited
@@ -1403,6 +1463,7 @@ OSWALAGRO,Oswal Agro Mills Limited
 OSWALGREEN,Oswal Greentech Limited
 OSWALPUMPS,Oswal Pumps Limited
 OSWALSEEDS,ShreeOswal Seeds And Chemicals Limited
+PACEDIGITK,Pace Digitek Limited
 PAGEIND,Page Industries Limited
 PAISALO,Paisalo Digital Limited
 PAKKA,PAKKA LIMITED
@@ -1418,6 +1479,7 @@ PARADEEP,Paradeep Phosphates Limited
 PARAGMILK,Parag Milk Foods Limited
 PARAS,Paras Defence and Space Technologies Limited
 PARASPETRO,Paras Petrofils Limited
+PARKHOSPS,Park Medi World Limited
 PARKHOTELS,Apeejay Surrendra Park Hotels Limited
 PARSVNATH,Parsvnath Developers Limited
 PASHUPATI,Pashupati Cotspin Limited
@@ -1426,6 +1488,7 @@ PATANJALI,Patanjali Foods Limited
 PATELENG,Patel Engineering Limited
 PATELRMART,Patel Retail Limited
 PATINTLOG,Patel Integrated Logistics Limited
+PAUSHAKLTD,Paushak Limited
 PAVNAIND,Pavna Industries Limited
 PAYTM,One 97 Communications Limited
 PCBL,PCBL Chemical Limited
@@ -1452,7 +1515,9 @@ PIGL,Power & Instrumentation (Gujarat) Limited
 PIIND,PI Industries Limited
 PILANIINVS,Pilani Investment and Industries Corporation Limited
 PILITA,PIL ITALICA LIFESTYLE LIMITED
+PINELABS,Pine Labs Limited
 PIONEEREMB,Pioneer Embroideries Limited
+PIRAMALFIN,Piramal Finance Limited
 PITTIENG,Pitti Engineering Limited
 PIXTRANS,Pix Transmissions Limited
 PKTEA,The Peria Karamalai Tea & Produce Company Limited
@@ -1465,6 +1530,7 @@ PNBHOUSING,PNB Housing Finance Limited
 PNC,Pritish Nandy Communications Limited
 PNCINFRA,PNC Infratech Limited
 PNGJL,P N Gadgil Jewellers Limited
+PNGSREVA,PNGS Reva Diamond Jewellery Limited
 POCL,Pondy Oxides & Chemicals Limited
 PODDARMENT,Poddar Pigments Limited
 POKARNA,Pokarna Limited
@@ -1517,6 +1583,7 @@ PURVA,Puravankara Limited
 PVP,PVP Ventures Limited
 PVRINOX,PVR INOX Limited
 PVSL,Popular Vehicles and Services Limited
+PWL,Physicswallah Limited
 PYRAMID,Pyramid Technoplast Limited
 QPOWER,Quality Power Electrical Equipments Limited
 QUADFUTURE,Quadrant Future Tek Limited
@@ -1583,7 +1650,6 @@ RESPONIND,Responsive Industries Limited
 RETAIL,JHS Svendgaard Retail Ventures Limited
 RGL,Renaissance Global Limited
 RHETAN,Rhetan TMT Limited
-RHFL,Reliance Home Finance Limited
 RHIM,RHI MAGNESITA INDIA LIMITED
 RHL,Robust Hotels Limited
 RICOAUTO,Rico Auto Industries Limited
@@ -1595,13 +1661,13 @@ RKDL,Ravi Kumar Distilleries Limited
 RKEC,RKEC Projects Limited
 RKFORGE,Ramkrishna Forgings Limited
 RKSWAMY,R K Swamy Limited
+RMC,RMC Switchgears Limited
 RMDRIP,R M Drip and Sprinklers Systems Limited
 RML,Rane (Madras) Limited
 RNBDENIMS,R&B Denims Limited
 ROHLTD,Royal Orchid Hotels Limited
 ROLEXRINGS,Rolex Rings Limited
 ROLLT,Rollatainers Limited
-ROLTA,Rolta India Limited
 ROML,Raj Oil Mills Limited
 ROSSARI,Rossari Biotech Limited
 ROSSELLIND,Rossell India Limited
@@ -1616,15 +1682,18 @@ RPPL,Rajshree Polypack Limited
 RPSGVENT,RPSG VENTURES LIMITED
 RPTECH,Rashi Peripherals Limited
 RRKABEL,R R Kabel Limited
+RSL,Rajputana Stainless Limited
 RSSOFTWARE,R. S. Software (India) Limited
 RSWM,RSWM Limited
 RSYSTEMS,R Systems International Limited
 RTNINDIA,RattanIndia Enterprises Limited
 RTNPOWER,RattanIndia Power Limited
 RUBFILA,Rubfila International Limited
+RUBICON,Rubicon Research Limited
 RUBYMILLS,The Ruby Mills Limited
 RUCHINFRA,Ruchi Infrastructure Limited
 RUCHIRA,Ruchira Papers Limited
+RUDRA,Rudra Global Infra Products Limited
 RUPA,Rupa & Company Limited
 RUSHIL,Rushil Decor Limited
 RUSTOMJEE,Keystone Realtors Limited
@@ -1634,7 +1703,6 @@ RVTH,Revathi Equipment India Limited
 S&SPOWER,S&S Power Switchgears Limited
 SAATVIKGL,Saatvik Green Energy Limited
 SABEVENTS,Sab Events & Governance Now Media Limited
-SABTNL,Sri Adhikari Brothers Television Network Limited
 SADBHAV,Sadbhav Engineering Limited
 SADBHIN,Sadbhav Infrastructure Project Limited
 SADHNANIQ,Sadhana Nitrochem Limited
@@ -1659,6 +1727,7 @@ SAMHI,Samhi Hotels Limited
 SAMMAANCAP,Sammaan Capital Limited
 SAMPANN,Sampann Utpadan India Limited
 SANATHAN,Sanathan Textiles Limited
+SANCO,Sanco Industries Limited
 SANDESH,The Sandesh Limited
 SANDHAR,Sandhar Technologies Limited
 SANDUMA,Sandur Manganese & Iron Ores Limited
@@ -1670,7 +1739,6 @@ SANOFI,Sanofi India Limited
 SANOFICONR,Sanofi Consumer Healthcare India Limited
 SANSERA,Sansera Engineering Limited
 SANSTAR,Sanstar Limited
-SANWARIA,Sanwaria Consumer Limited
 SAPPHIRE,Sapphire Foods India Limited
 SARDAEN,Sarda Energy & Minerals Limited
 SAREGAMA,Saregama India Limited
@@ -1699,23 +1767,25 @@ SDBL,Som Distilleries & Breweries Limited
 SEAMECLTD,Seamec Limited
 SECMARK,SecMark Consultancy Limited
 SECURKLOUD,SECUREKLOUD TECHNOLOGIES LIMITED
+SEDEMAC,SEDEMAC Mechatronics Limited
 SEJALLTD,Sejal Glass Limited
 SELMC,SEL Manufacturing Company Limited
 SEMAC,Semac Construction Limited
 SENCO,Senco Gold Limited
 SENORES,Senores Pharmaceuticals Limited
 SEPC,SEPC Limited
-SEQUENT,Sequent Scientific Limited
 SERVOTECH,Servotech Renewable Power System Limited
 SESHAPAPER,Seshasayee Paper and Boards Limited
 SETCO,Setco Automotive Limited
+SETL,Standard Engineering Technology Limited
+SETUINFRA,Setubandhan Infrastructure Limited
 SEYAIND,Seya Industries Limited
 SFL,Sheela Foam Limited
 SGFIN,SG Finserve Limited
 SGIL,Synergy Green Industries Limited
 SGL,STL Global Limited
-SGLTL,Standard Glass Lining Technology Limited
 SGMART,SG Mart Limited
+SHADOWFAX,Shadowfax Technologies Limited
 SHAH,Shah Metacorp Limited
 SHAHALLOYS,Shah Alloys Limited
 SHAILY,Shaily Engineering Plastics Limited
@@ -1731,15 +1801,16 @@ SHARDAMOTR,Sharda Motor Industries Limited
 SHAREINDIA,Share India Securities Limited
 SHEKHAWATI,Shekhawati Industries Limited
 SHEMAROO,Shemaroo Entertainment Limited
+SHILCTECH,Shilchar Technologies Limited
 SHILPAMED,Shilpa Medicare Limited
 SHIVALIK,Shivalik Rasayan Limited
 SHIVAMAUTO,Shivam Autotech Limited
 SHIVAMILLS,Shiva Mills Limited
 SHIVATEX,Shiva Texyarn Limited
+SHIVAUM,Shiv Aum Steels Limited
 SHK,S H Kelkar and Company Limited
 SHOPERSTOP,Shoppers Stop Limited
-SHRADHA,Shradha Infraprojects Limited
-SHRADHA-RE,Shradha Infraprojects Limited-RE
+SHRADHA,Shradha Realty Limited
 SHREDIGCEM,Shree Digvijay Cement Co.Ltd
 SHREECEM,SHREE CEMENT LIMITED
 SHREEJISPG,Shreeji Shipping Global Limited
@@ -1754,10 +1825,12 @@ SHRIRAMPPS,Shriram Properties Limited
 SHYAMCENT,Shyam Century Ferrous Limited
 SHYAMMETL,Shyam Metalics and Energy Limited
 SHYAMTEL,Shyam Telecom Limited
+SICALLOG,Sical Logistics Limited
 SIEMENS,Siemens Limited
 SIGACHI,Sigachi Industries Limited
 SIGIND,Signet Industries Limited
 SIGMA,Sigma Solve Limited
+SIGMAADV,SIGMA ADVANCED SYSTEMS LIMITED
 SIGNATURE,Signatureglobal (India) Limited
 SIGNPOST,Signpost India Limited
 SIKKO,Sikko Industries Limited
@@ -1770,6 +1843,7 @@ SIMBHALS,Simbhaoli Sugars Limited
 SIMPLEXINF,Simplex Infrastructures Limited
 SINCLAIR,Sinclairs Hotels Limited
 SINDHUTRAD,Sindhu Trade Links Limited
+SINGERIND,Singer India Limited
 SINTERCOM,Sintercom India Limited
 SIRCA,Sirca Paints India Limited
 SIS,SIS LIMITED
@@ -1778,21 +1852,23 @@ SIYSIL,Siyaram Silk Mills Limited
 SJS,S.J.S. Enterprises Limited
 SJVN,SJVN Limited
 SKFINDIA,SKF India Limited
+SKFINDUS,SKF India (Industrial) Limited
 SKIPPER,Skipper Limited
 SKMEGGPROD,SKM Egg Products Export (India) Limited
 SKYGOLD,SKY GOLD AND DIAMONDS LIMITED
 SMARTLINK,Smartlink Holdings Limited
 SMARTWORKS,Smartworks Coworking Spaces Limited
 SMCGLOBAL,SMC Global Securities Limited
-SMLISUZU,SML Isuzu Limited
+SMLMAH,SML Mahindra Limited
 SMLT,Sarthak Metals Limited
-SMSLIFE,SMS Lifesciences India Limited
 SMSPHARMA,SMS Pharmaceuticals Limited
 SNOWMAN,Snowman Logistics Limited
 SOBHA,Sobha Limited
 SOFTTECH,Softtech Engineers Limited
 SOLARA,Solara Active Pharma Sciences Limited
 SOLARINDS,Solar Industries India Limited
+SOLARWORLD,Solarworld Energy Solutions Limited
+SOLEX,Solex Energy Limited
 SOMANYCERA,Somany Ceramics Limited
 SOMATEX,Soma Textiles & Industries Limited
 SOMICONVEY,Somi Conveyor Beltings Limited
@@ -1820,7 +1896,7 @@ SRF,SRF Limited
 SRGHFL,SRG Housing Finance Limited
 SRHHYPOLTD,Sree Rayalaseema Hi-Strength Hypo Limited
 SRM,SRM Contractors Limited
-SRPL,Shree Ram Proteins Limited
+SRTL,Shree Ram Twistex Limited
 SSDL,Saraswati Saree Depot Limited
 SSWL,Steel Strips Wheels Limited
 STALLION,Stallion India Fluorochemicals Limited
@@ -1839,12 +1915,16 @@ STERTOOLS,Sterling Tools Limited
 STLNETWORK,STL Networks Limited
 STLTECH,Sterlite Technologies Limited
 STOVEKRAFT,Stove Kraft Limited
+STUDDS,Studds Accessories Limited
+STYL,Seshaasai Technologies Limited
 STYLAMIND,Stylam Industries Limited
 STYLEBAAZA,Baazar Style Retail Limited
 STYRENIX,Styrenix Performance Materials Limited
 SUBEXLTD,Subex Limited
 SUBROS,Subros Limited
+SUDARCOLOR,Sudarshan Colorants India Limited
 SUDARSCHEM,Sudarshan Chemical Industries Limited
+SUDEEPPHRM,Sudeep Pharma Limited
 SUKHJITS,Sukhjit Starch & Chemicals Limited
 SULA,Sula Vineyards Limited
 SUMEETINDS,Sumeet Industries Limited
@@ -1854,7 +1934,6 @@ SUMMITSEC,Summit Securities Limited
 SUNCLAY,Sundaram Clayton Limited
 SUNDARAM,Sundaram Multi Pap Limited
 SUNDARMFIN,Sundaram Finance Limited
-SUNDARMHLD,Sundaram Finance Holdings Limited
 SUNDRMBRAK,Sundaram Brake Linings Limited
 SUNDRMFAST,Sundram Fasteners Limited
 SUNDROP,Sundrop Brands Limited
@@ -1866,6 +1945,7 @@ SUPERHOUSE,Superhouse Limited
 SUPERSPIN,Super Spinning Mills Limited
 SUPRAJIT,Suprajit Engineering Limited
 SUPREME,Supreme Holdings & Hospitality (India) Limited
+SUPREMEENG,Supreme Engineering Limited
 SUPREMEIND,Supreme Industries Limited
 SUPREMEINF,Supreme Infrastructure India Limited
 SUPRIYA,Supriya Lifescience Limited
@@ -1885,6 +1965,7 @@ SUZLON,Suzlon Energy Limited
 SVLL,Shree Vasu Logistics Limited
 SVPGLOB,SVP GLOBAL TEXTILES LIMITED
 SWANCORP,SWAN CORP LIMITED
+SWANDEF,Swan Defence and Heavy Industries Limited
 SWARAJENG,Swaraj Engines Limited
 SWELECTES,Swelect Energy Systems Limited
 SWIGGY,Swiggy Limited
@@ -1893,6 +1974,7 @@ SYMPHONY,Symphony Limited
 SYNCOMF,Syncom Formulations (India) Limited
 SYNGENE,Syngene International Limited
 SYRMA,Syrma SGS Technology Limited
+SYSTMTXC,Systematix Corporate Services Limited
 TAINWALCHM,Tainwala Chemical and Plastic (I) Limited
 TAJGVK,Taj GVK Hotels & Resorts Limited
 TAKE,Take Solutions Limited
@@ -1905,18 +1987,19 @@ TARIL,Transformers And Rectifiers (India) Limited
 TARMAT,Tarmat Limited
 TARSONS,Tarsons Products Limited
 TASTYBITE,Tasty Bite Eatables Limited
+TATACAP,Tata Capital Limited
 TATACHEM,Tata Chemicals Limited
 TATACOMM,Tata Communications Limited
 TATACONSUM,TATA CONSUMER PRODUCTS LIMITED
 TATAELXSI,Tata Elxsi Limited
 TATAINVEST,Tata Investment Corporation Limited
-TATAMOTORS,Tata Motors Limited
 TATAPOWER,Tata Power Company Limited
 TATASTEEL,Tata Steel Limited
 TATATECH,Tata Technologies Limited
 TATVA,Tatva Chintan Pharma Chem Limited
 TBOTEK,TBO Tek Limited
 TBZ,Tribhovandas Bhimji Zaveri Limited
+TCC,TCC Concept Limited
 TCI,Transport Corporation of India Limited
 TCIEXP,TCI Express Limited
 TCIFINANCE,TCI Finance Limited
@@ -1931,6 +2014,7 @@ TECILCHEM,TECIL Chemicals and Hydro Power Limited
 TEGA,Tega Industries Limited
 TEJASNET,Tejas Networks Limited
 TEMBO,Tembo Global Industries Limited
+TENNIND,Tenneco Clean Air India Limited
 TERASOFT,Tera Software Limited
 TEXINFRA,Texmaco Infrastructure & Holdings Limited
 TEXMOPIPES,Texmo Pipes and Products Limited
@@ -1941,7 +2025,7 @@ TGBHOTELS,TGB Banquets And Hotels Limited
 THANGAMAYL,Thangamayil Jewellery Limited
 THEINVEST,The Investment Trust Of India Limited
 THEJO,Thejo Engineering Limited
-THELEELA,Schloss Bangalore Limited
+THELEELA,Leela Palaces Hotels & Resorts Limited
 THEMISMED,Themis Medicare Limited
 THERMAX,Thermax Limited
 THOMASCOOK,Thomas Cook  (India)  Limited
@@ -1954,6 +2038,7 @@ TIIL,Technocraft Industries (India) Limited
 TIINDIA,Tube Investments of India Limited
 TIJARIA,Tijaria Polypipes Limited
 TIL,TIL Limited
+TIL-RE1,TIL Limited-RE
 TIMETECHNO,Time Technoplast Limited
 TIMKEN,Timken India Limited
 TINNARUBR,Tinna Rubber and Infrastructure Limited
@@ -1964,6 +2049,8 @@ TIRUPATIFL,Tirupati Forge Limited
 TITAGARH,TITAGARH RAIL SYSTEMS LIMITED
 TITAN,Titan Company Limited
 TMB,Tamilnad Mercantile Bank Limited
+TMCV,Tata Motors Limited
+TMPV,Tata Motors Passenger Vehicles Limited
 TNPETRO,Tamilnadu PetroProducts Limited
 TNPL,Tamil Nadu Newsprint & Papers Limited
 TNTELE,Tamilnadu Telecommunication Limited
@@ -1989,6 +2076,8 @@ TRIGYN,Trigyn Technologies Limited
 TRITURBINE,Triveni Turbine Limited
 TRIVENI,Triveni Engineering & Industries Limited
 TRU,TruCap Finance Limited
+TRUALT,TruAlt Bioenergy Limited
+TSFINV,TSF INVESTMENTS LIMITED
 TTKHLTCARE,TTK Healthcare Limited
 TTKPRESTIG,TTK Prestige Limited
 TTL,T T Limited
@@ -2004,6 +2093,8 @@ UBL,United Breweries Limited
 UCAL,UCAL LIMITED
 UCOBANK,UCO Bank
 UDS,Updater Services Limited
+UEL,Ujaas Energy Limited
+UFBL,United Foodbrands Limited
 UFLEX,UFLEX Limited
 UFO,UFO Moviez India Limited
 UGARSUGAR,The Ugar Sugar Works Limited
@@ -2037,6 +2128,7 @@ USHAMART,Usha Martin Limited
 USK,Udayshivakumar Infra Limited
 UTIAMC,UTI Asset Management Company Limited
 UTKARSHBNK,Utkarsh Small Finance Bank Limited
+UTLSOLAR,Fujiyama Power Systems Limited
 UTTAMSUGAR,Uttam Sugar Mills Limited
 UYFINCORP,U. Y. Fincorp Limited
 V2RETAIL,V2 Retail Limited
@@ -2063,10 +2155,12 @@ VERANDA,Veranda Learning Solutions Limited
 VERTOZ,Vertoz Limited
 VESUVIUS,Vesuvius India Limited
 VETO,Veto Switchgears And Cables Limited
+VGL,VARVEE GLOBAL LIMITED
 VGUARD,V-Guard Industries Limited
 VHL,Vardhman Holdings Limited
 VHLTD,Viceroy Hotels Limited
 VIDHIING,Vidhi Specialty Food Ingredients Limited
+VIDYAWIRES,Vidya Wires Limited
 VIJAYA,Vijaya Diagnostic Centre Limited
 VIJIFIN,Viji Finance Limited
 VIKASECO,Vikas EcoTech Limited
@@ -2085,9 +2179,13 @@ VIPIND,VIP Industries Limited
 VIPULLTD,Vipul Limited
 VIRINCHI,Virinchi Limited
 VISAKAIND,Visaka Industries Limited
+VISASTEEL,Visa Steel Limited
 VISHNU,Vishnu Chemicals Limited
 VISHWARAJ,Vishwaraj Sugar Industries Limited
+VITAL,Vital Chemtech Limited
 VIVIDHA,Visagar Polytex Limited
+VIVIMEDLAB,Vivimed Labs Limited
+VIYASH,Viyash Scientific Limited
 VLEGOV,VL E-Governance & IT Solutions Limited
 VLSFINANCE,VLS Finance Limited
 VMART,V-Mart Retail Limited
@@ -2104,8 +2202,10 @@ VSTL,Vibhor Steel Tubes Limited
 VSTTILLERS,V.S.T Tillers Tractors Limited
 VTL,Vardhman Textiles Limited
 WAAREEENER,Waaree Energies Limited
+WAAREEINDO,Indosolar Limited
 WAAREERTL,Waaree Renewable Technologies Limited
 WABAG,VA Tech Wabag Limited
+WAKEFIT,Wakefit Innovations Limited
 WALCHANNAG,Walchandnagar Industries Limited
 WANBURY,Wanbury Limited
 WCIL,Western Carriers (India) Limited
@@ -2120,6 +2220,7 @@ WELSPUNLIV,Welspun Living Limited
 WENDT,Wendt (India) Limited
 WESTLIFE,WESTLIFE FOODWORLD LIMITED
 WEWIN,WE WIN LIMITED
+WEWORK,WeWork India Management Limited
 WHEELS,Wheels India Limited
 WHIRLPOOL,Whirlpool of India Limited
 WILLAMAGOR,Williamson Magor & Company Limited
@@ -2130,7 +2231,7 @@ WIPL,The Western India Plywoods Limited
 WIPRO,Wipro Limited
 WOCKPHARMA,Wockhardt Limited
 WONDERLA,Wonderla Holidays Limited
-WORTH,Worth Peripherals Limited
+WORTHPERI,Worth Peripherals Limited
 WSI,W S Industries (I) Limited
 WSTCSTPAPR,West Coast Paper Mills Limited
 XCHANGING,Xchanging Solutions Limited
