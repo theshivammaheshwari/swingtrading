@@ -96,17 +96,11 @@ def get_indices():
     indices = [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]
     for sym, name in indices:
         response = fetch_yf_data(sym, "5d", "1d")
-        meta = response.get("meta", {})
-        
-        current = meta.get("regularMarketPrice")
-        prev = meta.get("chartPreviousClose")
-        
-        # fallback to closes array if meta prices not fetched
         closes = response.get("closes", [])
-        if not current and closes: current = closes[-1]
-        if not prev and len(closes) > 1: prev = closes[-2]
-            
-        if current and prev:
+        
+        if len(closes) > 1:
+            current = closes[-1]
+            prev = closes[-2]
             chg = current - prev
             pct = (chg / prev) * 100
             results.append({"name": name, "price": round(current, 2), "change": round(chg, 2), "pct": round(pct, 2)})
@@ -118,17 +112,11 @@ def get_top_movers():
     data_list = []
     for s in symbols:
         response = fetch_yf_data(f"{s}.NS", "5d", "1d")
-        meta = response.get("meta", {})
-        
-        cur = meta.get("regularMarketPrice")
-        prv = meta.get("chartPreviousClose")
-        
-        # fallback to closes array if meta prices not fetched
         closes = response.get("closes", [])
-        if not cur and closes: cur = closes[-1]
-        if not prv and len(closes) > 1: prv = closes[-2]
-            
-        if cur and prv:
+        
+        if len(closes) > 1:
+            cur = closes[-1]
+            prv = closes[-2]
             change = cur - prv
             pct = (change / prv) * 100
             data_list.append({"Symbol": s, "Company": s, "Price": round(cur, 2), "Change": round(change, 2), "Pct": round(pct, 2)})
