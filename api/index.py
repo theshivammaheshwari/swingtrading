@@ -15,20 +15,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import time
+
 def fetch_yf_data(symbol, range_val="6mo", interval="1d"):
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range={range_val}&interval={interval}"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range={range_val}&interval={interval}&_={int(time.time())}"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     try:
         res = requests.get(url, headers=headers, timeout=5)
         if res.status_code == 200:
             data = res.json()["chart"]["result"][0]
+            meta = data.get("meta", {})
             quotes = data["indicators"]["quote"][0]
             closes = quotes.get("close", [])
             valid_closes = [c for c in closes if c is not None]
-            return valid_closes
+            
+            current_price = meta.get("regularMarketPrice", 0)
+            if current_price and valid_closes and valid_closes[-1] != current_price:
+                # Append live price to closes array so indicators show current reality
+                valid_closes.append(current_price)
+
+            return {"meta": meta, "closes": valid_closes}
     except:
         pass
-    return []
+    return {"meta": {}, "closes": []}
 
 def calc_ema(data, span):
     if len(data) < span: return None
@@ -86,10 +95,18 @@ def get_indices():
     results = []
     indices = [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]
     for sym, name in indices:
-        closes = fetch_yf_data(sym, "5d", "1d")
-        if len(closes) >= 2:
-            current = closes[-1]
-            prev = closes[-2]
+        response = fetch_yf_data(sym, "5d", "1d")
+        meta = response.get("meta", {})
+        
+        current = meta.get("regularMarketPrice")
+        prev = meta.get("chartPreviousClose")
+        
+        # fallback to closes array if meta prices not fetched
+        closes = response.get("closes", [])
+        if not current and closes: current = closes[-1]
+        if not prev and len(closes) > 1: prev = closes[-2]
+            
+        if current and prev:
             chg = current - prev
             pct = (chg / prev) * 100
             results.append({"name": name, "price": round(current, 2), "change": round(chg, 2), "pct": round(pct, 2)})
@@ -100,10 +117,18 @@ def get_top_movers():
     symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "HINDUNILVR", "ICICIBANK", "KOTAKBANK", "SBIN", "BHARTIARTL", "BAJFINANCE"]
     data_list = []
     for s in symbols:
-        closes = fetch_yf_data(f"{s}.NS", "5d", "1d")
-        if len(closes) >= 2:
-            cur = closes[-1]
-            prv = closes[-2]
+        response = fetch_yf_data(f"{s}.NS", "5d", "1d")
+        meta = response.get("meta", {})
+        
+        cur = meta.get("regularMarketPrice")
+        prv = meta.get("chartPreviousClose")
+        
+        # fallback to closes array if meta prices not fetched
+        closes = response.get("closes", [])
+        if not cur and closes: cur = closes[-1]
+        if not prv and len(closes) > 1: prv = closes[-2]
+            
+        if cur and prv:
             change = cur - prv
             pct = (change / prv) * 100
             data_list.append({"Symbol": s, "Company": s, "Price": round(cur, 2), "Change": round(change, 2), "Pct": round(pct, 2)})
@@ -117,10 +142,14 @@ def search_stock(q: str = Query("")):
     return [{"symbol": s} for s in defaults if q.upper() in s]
 
 def get_stock_analysis_logic(ticker: str):
-    closes = fetch_yf_data(f"{ticker.upper()}.NS", "6mo", "1d")
+    response = fetch_yf_data(f"{ticker.upper()}.NS", "6mo", "1d")
+    closes = response.get("closes", [])
+    meta = response.get("meta", {})
+    
     if not closes or len(closes) < 30:
         return {"error": f"No data for {ticker}"}
-    latest_price = closes[-1]
+        
+    latest_price = meta.get("regularMarketPrice", closes[-1])
     rsi = calc_rsi(closes)
     macd, macd_sig = calc_macd(closes)
     ema10 = calc_ema(closes, 10)
