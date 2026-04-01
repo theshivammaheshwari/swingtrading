@@ -1,13 +1,15 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+import os
+
+# Fix Vercel Serverless read-only file system error for yfinance
+os.environ["YFINANCE_CACHE_DIR"] = "/tmp"
+
 import yfinance as yf
 import pandas as pd
 import numpy as np
 import ta
-import requests
-from bs4 import BeautifulSoup
-import os
 
 app = FastAPI()
 
@@ -269,56 +271,107 @@ def read_root():
 
 @app.get("/api/market/indices")
 def get_indices():
-    r = []
-    for s, n in [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]:
-        try:
-            t = yf.Ticker(s)
-            h = t.history(period="5d")
-            if len(h) >= 2:
-                c, p = float(h['Close'].iloc[-1]), float(h['Close'].iloc[-2])
-                chg, chgp = c-p, ((c-p)/p)*100
-                r.append({'name': n, 'price': round(c, 2), 'change': round(chg, 2), 'pct': round(chgp, 2)})
-        except:
-            pass
-    return r
+    try:
+        symbols = ["^NSEI", "^NSEBANK", "^BSESN"]
+        names = {"^NSEI": "NIFTY 50", "^NSEBANK": "BANK NIFTY", "^BSESN": "SENSEX"}
+        r = []
+        data = yf.download(symbols, period="5d", group_by="ticker", threads=True, progress=False)
+        
+        for s in symbols:
+            try:
+                # Based on yfinance version, single ticker 'Close' is a Series or DataFrame column
+                if isinstance(data.columns, pd.MultiIndex):
+                    h = data[s]['Close'].dropna()
+                else:
+                    if len(symbols) == 1:
+                        h = data['Close'].dropna()
+                    else:
+                        h = data.xs(s, level='Ticker', axis=1)['Close'].dropna() if 'Ticker' in data.columns.names else data[s]['Close'].dropna()
+                
+                # Check for enough days backward
+                if len(h) >= 2:
+                    current_price = float(h.iloc[-1])
+                    prev_price = float(h.iloc[-2])
+                    change = current_price - prev_price
+                    change_pct = (change / prev_price) * 100
+                    r.append({'name': names[s], 'price': round(current_price, 2), 'change': round(change, 2), 'pct': round(change_pct, 2)})
+            except Exception as e:
+                print(f"Error parsing index {s}: {e}")
+                pass
+        
+        # Fallback if bulk download fails formats
+        if not r:
+            for s in symbols:
+                t = yf.Ticker(s)
+                h = t.history(period="5d")
+                if len(h) >= 2:
+                    c, p = float(h['Close'].iloc[-1]), float(h['Close'].iloc[-2])
+                    r.append({'name': names[s], 'price': round(c, 2), 'change': round(c-p, 2), 'pct': round(((c-p)/p)*100, 2)})
+        
+        if not r:
+            return [{"name": "Error", "price": 0, "change": 0, "pct": 0, "error": "No data returned from YFinance"}]
+        return r
+    except Exception as e:
+        return [{"name": "Failed", "price": 0, "change": 0, "pct": 0, "error": str(e)}]
 
 @app.get("/api/market/movers")
 def get_top_movers():
-    nifty50_symbols = [
-            "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "HINDUNILVR.NS",
-            "ICICIBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS"
-    ]
-    
-    data_list = []
-    for symbol in nifty50_symbols:
-        try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="5d")
-            if len(hist) >= 2:
-                current_price = hist['Close'].iloc[-1]
-                prev_price = hist['Close'].iloc[-2]
-                change = current_price - prev_price
-                change_pct = (change / prev_price) * 100
-                info = ticker.info
-                company_name = info.get('longName', info.get('shortName', symbol.replace('.NS', '')))
-                data_list.append({
-                    'Symbol': symbol.replace('.NS', ''),
-                    'Company': company_name,
-                    'Price': round(current_price, 2),
-                    'Change': round(change, 2),
-                    'Pct': round(change_pct, 2)
-                })
-        except:
-            continue
-            
-    df = pd.DataFrame(data_list)
-    if df.empty: return {"gainers": [], "losers": []}
-    
-    df_sorted = df.sort_values('Pct', ascending=False)
-    gainers = df_sorted.head(5).to_dict(orient="records")
-    losers = df_sorted.tail(5).sort_values('Pct').to_dict(orient="records")
-    
-    return {"gainers": gainers, "losers": losers}
+    try:
+        nifty50_symbols = [
+                "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "HINDUNILVR.NS",
+                "ICICIBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS"
+        ]
+        data_list = []
+        data = yf.download(nifty50_symbols, period="5d", group_by="ticker", threads=True, progress=False)
+        
+        for symbol in nifty50_symbols:
+            try:
+                if isinstance(data.columns, pd.MultiIndex):
+                    h = data[symbol]['Close'].dropna()
+                else:
+                    h = data[symbol]['Close'].dropna()
+                
+                if len(h) >= 2:
+                    current_price = float(h.iloc[-1])
+                    prev_price = float(h.iloc[-2])
+                    change = current_price - prev_price
+                    change_pct = (change / prev_price) * 100
+                    data_list.append({
+                        'Symbol': symbol.replace('.NS', ''),
+                        'Company': symbol.replace('.NS', ''), # simplified for speed since info loop takes too long
+                        'Price': round(current_price, 2),
+                        'Change': round(change, 2),
+                        'Pct': round(change_pct, 2)
+                    })
+            except Exception as e:
+                print(f"Error parsing mover {symbol}: {e}")
+                
+        # If bulk fails, fallback to simple loop for 3
+        if not data_list:
+            for s in nifty50_symbols[:3]:
+                t = yf.Ticker(s)
+                h = t.history(period="5d")
+                if len(h) >= 2:
+                    current_price = float(h['Close'].iloc[-1])
+                    prev_price = float(h['Close'].iloc[-2])
+                    data_list.append({
+                        'Symbol': s.replace('.NS', ''),
+                        'Company': s.replace('.NS', ''),
+                        'Price': round(current_price, 2),
+                        'Change': round(current_price - prev_price, 2),
+                        'Pct': round(((current_price - prev_price) / prev_price) * 100, 2)
+                    })
+
+        df = pd.DataFrame(data_list)
+        if df.empty: return {"gainers": [{"Symbol": "No Data", "Company": "Error", "Price": 0, "Pct": 0, "Change": 0}], "losers": []}
+        
+        df_sorted = df.sort_values('Pct', ascending=False)
+        gainers = df_sorted.head(5).to_dict(orient="records")
+        losers = df_sorted.tail(5).sort_values('Pct').to_dict(orient="records")
+        
+        return {"gainers": gainers, "losers": losers}
+    except Exception as e:
+        return {"error": str(e), "gainers": [], "losers": []}
 
 @app.get("/api/stock/search")
 def search_stock(q: str = Query("")):
