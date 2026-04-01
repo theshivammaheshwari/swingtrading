@@ -4,6 +4,9 @@ from fastapi.responses import HTMLResponse
 import requests
 import json
 import math
+import time
+import os
+import csv
 
 app = FastAPI()
 
@@ -124,10 +127,40 @@ def get_top_movers():
     data_list.sort(key=lambda x: x["Pct"], reverse=True)
     return {"gainers": data_list[:5], "losers": sorted(data_list[-5:], key=lambda x: x["Pct"])}
 
+STOCK_LIST = []
+def load_stocks():
+    global STOCK_LIST
+    if STOCK_LIST: return STOCK_LIST
+    csv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "nse_stock_list.csv")
+    try:
+        with open(csv_path, mode='r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            next(reader, None) # skip header
+            for row in reader:
+                if len(row) >= 2:
+                    STOCK_LIST.append({"symbol": row[0].strip(), "name": row[1].strip()})
+    except Exception as e:
+        print("Error loading CSV:", e)
+    return STOCK_LIST
+
 @app.get("/api/stock/search")
 def search_stock(q: str = Query("")):
-    defaults = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "BHARTIARTL", "ITC", "LT", "BAJFINANCE"]
-    return [{"symbol": s} for s in defaults if q.upper() in s]
+    if len(q) < 2: return []
+    q_upper = q.upper()
+    stocks = load_stocks()
+    
+    results = []
+    for s in stocks:
+        if q_upper in s["symbol"].upper() or q_upper in s["name"].upper():
+            results.append(s)
+            if len(results) >= 10: break
+            
+    if not results:
+        # fallback if nothing matched (or csv missing)
+        defaults = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "BHARTIARTL", "ITC", "LT", "BAJFINANCE"]
+        return [{"symbol": s, "name": "Company"} for s in defaults if q_upper in s][:10]
+        
+    return results
 
 def get_stock_analysis_logic(ticker: str):
     response = fetch_yf_data(f"{ticker.upper()}.NS", "6mo", "1d")
@@ -317,10 +350,11 @@ def read_root():
                     const res = await fetch(`/api/stock/search?q=${q}`);
                     const data = await res.json();
                     if(data.length > 0) {
-                        list.innerHTML = data.map(item => `<div class="cursor-pointer p-2 hover:bg-blue-100" onclick="selectSuggestion('${item.symbol}')">${item.symbol}</div>`).join('');
+                        list.innerHTML = data.map(item => `<div class="cursor-pointer p-3 hover:bg-blue-50 border-b flex justify-between items-center" onclick="selectSuggestion('${item.symbol}')"><span class="font-bold text-blue-700 uppercase">${item.symbol}</span><span class="text-xs text-slate-500 truncate max-w-[70%] ml-2 text-right">${item.name}</span></div>`).join('');
                         list.classList.remove('hidden');
                     } else {
-                        list.classList.add('hidden');
+                        list.innerHTML = `<div class="p-3 text-slate-500 text-sm">No stocks found for "${q}"</div>`;
+                        list.classList.remove('hidden');
                     }
                 } catch(e) {}
             }, 300);
