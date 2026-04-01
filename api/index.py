@@ -238,10 +238,11 @@ def read_root():
     </header>
 
     <!-- Navigation Tabs -->
-    <div class="container mx-auto mt-4 px-4 border-b">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button onclick="switchTab('home')" id="tab-home" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Stock Analysis</button>
-            <button onclick="switchTab('compare')" id="tab-compare" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">🔀 Compare Stocks</button>
+    <div class="container mx-auto mt-4 px-4 border-b overflow-x-auto">
+        <nav class="-mb-px flex space-x-6 sm:space-x-8" aria-label="Tabs">
+            <button onclick="switchTab('home')" id="tab-home" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">📊 Analysis</button>
+            <button onclick="switchTab('compare')" id="tab-compare" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">🔀 Compare</button>
+            <button onclick="switchTab('contact')" id="tab-contact" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">📞 Contact Us</button>
         </nav>
     </div>
 
@@ -253,14 +254,14 @@ def read_root():
             </section>
 
             <!-- Technical Analysis Search -->
-            <section class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500 mb-8 relative">
+            <section class="bg-white p-4 sm:p-6 rounded-lg shadow border-l-4 border-blue-500 mb-8 relative">
                 <h2 class="text-xl font-bold mb-4">Stock Technical Analysis (Signal generated)</h2>
-                <div class="flex gap-2 mb-4 relative">
-                    <input type="text" id="ticker-input" autocomplete="off" oninput="searchSuggestions()" placeholder="Type Ticker (e.g. RELIANCE, TCS)" class="border p-2 rounded-md flex-grow focus:outline-blue-500 uppercase" />
-                    <button onclick="analyzeStock()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold transition">Analyze</button>
+                <div class="flex flex-col sm:flex-row gap-2 mb-4 relative">
+                    <input type="text" id="ticker-input" autocomplete="off" oninput="searchSuggestions()" placeholder="Type Ticker (e.g. RELIANCE, TCS)" class="border p-3 rounded-md flex-grow focus:outline-blue-500 uppercase" />
+                    <button onclick="analyzeStock()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 sm:py-2 rounded-md font-semibold transition">Analyze</button>
                     
                     <!-- Autocomplete dropdown -->
-                    <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md top-12 mt-1 hidden shadow-lg max-h-48 overflow-y-auto"></div>
+                    <div id="autocomplete-list" class="absolute z-10 w-full sm:w-auto sm:left-0 sm:right-[120px] bg-white border border-gray-300 rounded-md top-[3.5rem] sm:top-12 mt-1 hidden shadow-lg max-h-48 overflow-y-auto"></div>
                 </div>
                 
                 <div id="analysis-result" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4 bg-slate-50 rounded mt-4">
@@ -283,12 +284,12 @@ def read_root():
 
         <!-- Compare View -->
         <div id="view-compare" class="hidden">
-            <section class="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
+            <section class="bg-white p-4 sm:p-6 rounded-lg shadow border-l-4 border-purple-500">
                 <h2 class="text-xl font-bold mb-2">Compare Stocks (Max 5)</h2>
                 <p class="text-sm text-gray-500 mb-4">Enter comma-separated tickers (e.g. RELIANCE, TCS, INFY)</p>
-                <div class="flex gap-2 mb-6">
-                    <input type="text" id="compare-input" placeholder="RELIANCE, TCS" class="border p-2 rounded-md flex-grow focus:outline-purple-500 uppercase" />
-                    <button onclick="compareStocks()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-semibold transition">Compare</button>
+                <div class="flex flex-col sm:flex-row gap-2 mb-6">
+                    <input type="text" id="compare-input" placeholder="RELIANCE, TCS" class="border p-3 sm:p-2 rounded-md flex-grow focus:outline-purple-500 uppercase" />
+                    <button onclick="compareStocks()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 sm:py-2 rounded-md font-semibold transition">Compare</button>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -310,6 +311,53 @@ def read_root():
                 </div>
             </section>
         </div>
+
+        <!-- Contact View -->
+        <div id="view-contact" class="hidden">
+            <section class="bg-white p-6 sm:p-8 rounded-lg shadow border-l-4 border-green-500 mb-8">
+                <h2 class="text-3xl font-bold mb-4">Contact Us</h2>
+                <p class="text-slate-500 mb-8 max-w-xl">Have a question or want to get in touch? Fill out the form below and your message will be sent directly via WhatsApp.</p>
+                <div class="grid md:grid-cols-5 gap-12">
+                    <!-- Contact Info -->
+                    <div class="md:col-span-2 space-y-8">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4">Get in Touch</h2>
+                            <p class="text-slate-500 text-sm mb-4">This website was developed by <strong class="text-slate-800">Mr. Shivam Maheshwari</strong></p>
+                        </div>
+                        <div class="space-y-6">
+                            <a href="tel:+919468955596" class="flex items-center gap-4 text-slate-500 hover:text-green-600 transition-colors">
+                                <div class="h-12 w-12 rounded-lg bg-green-50 flex items-center justify-center text-green-600 text-xl font-bold">📞</div>
+                                <div><p class="text-xs text-slate-400">Phone</p><p class="text-sm font-semibold text-slate-800">+91 9468955596</p></div>
+                            </a>
+                            <a href="mailto:shivamtensor@gmail.com" class="flex items-center gap-4 text-slate-500 hover:text-green-600 transition-colors">
+                                <div class="h-12 w-12 rounded-lg bg-green-50 flex items-center justify-center text-green-600 text-xl font-bold">✉️</div>
+                                <div><p class="text-xs text-slate-400">Email</p><p class="text-sm font-semibold text-slate-800">shivamtensor@gmail.com</p></div>
+                            </a>
+                        </div>
+                        <div class="pt-4">
+                            <p class="text-sm font-semibold mb-3 text-slate-800">Follow on Social Media</p>
+                            <div class="flex gap-3 flex-wrap">
+                                <a href="https://www.youtube.com/@ComputerScienceEngineering" target="_blank" class="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-green-100 hover:text-green-600 transition-colors">📺</a>
+                                <a href="https://medium.com/@computerscienceengineering" target="_blank" class="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-green-100 hover:text-green-600 transition-colors">📝</a>
+                                <a href="https://www.instagram.com/shivamtensor" target="_blank" class="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-green-100 hover:text-green-600 transition-colors">📸</a>
+                                <a href="https://www.facebook.com/shivamtensor" target="_blank" class="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-green-100 hover:text-green-600 transition-colors">📘</a>
+                                <a href="https://www.linkedin.com/in/shivamtensor/" target="_blank" class="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-green-100 hover:text-green-600 transition-colors">💼</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contact Form -->
+                    <form onsubmit="handleContactSubmit(event)" class="md:col-span-3 space-y-5 rounded-xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="text-sm font-medium mb-1.5 block text-slate-700">Name <span class="text-red-500">*</span></label><input id="c-name" required class="border border-slate-300 p-3 w-full rounded-md focus:outline-green-500" placeholder="Your name" /></div>
+                            <div><label class="text-sm font-medium mb-1.5 block text-slate-700">Email</label><input id="c-email" type="email" class="border border-slate-300 p-3 w-full rounded-md focus:outline-green-500" placeholder="your@email.com" /></div>
+                        </div>
+                        <div><label class="text-sm font-medium mb-1.5 block text-slate-700">Subject</label><input id="c-subj" class="border border-slate-300 p-3 w-full rounded-md focus:outline-green-500" placeholder="What is this about?" /></div>
+                        <div><label class="text-sm font-medium mb-1.5 block text-slate-700">Message <span class="text-red-500">*</span></label><textarea id="c-msg" required rows="5" class="border border-slate-300 p-3 w-full rounded-md focus:outline-green-500" placeholder="Write your message here..."></textarea></div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md transition flex justify-center items-center gap-2">Send via WhatsApp 🚀</button>
+                    </form>
+                </div>
+            </section>
+        </div>
     </main>
 
     <footer class="text-center p-6 text-slate-500 text-sm mt-10 bg-white border-t">
@@ -327,14 +375,30 @@ def read_root():
     <script>
         // --- Navigation ---
         function switchTab(tab) {
-            document.getElementById('view-home').classList.add('hidden');
-            document.getElementById('view-compare').classList.add('hidden');
-            document.getElementById('tab-home').className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
-            document.getElementById('tab-compare').className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            ['home', 'compare', 'contact'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            });
             
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            if (tab === 'home') document.getElementById('tab-home').className = "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
-            if (tab === 'compare') document.getElementById('tab-compare').className = "border-purple-500 text-purple-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            let act = document.getElementById(`tab-${tab}`);
+            if(tab === 'home') act.className = "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            if(tab === 'compare') act.className = "border-purple-500 text-purple-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            if(tab === 'contact') act.className = "border-green-500 text-green-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+        }
+
+        // --- Contact Form ---
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('c-name').value.trim();
+            const email = document.getElementById('c-email').value.trim();
+            const subj = document.getElementById('c-subj').value.trim();
+            const msg = document.getElementById('c-msg').value.trim();
+            
+            if(!name || !msg) return;
+            const text = `*New Contact Message*%0A%0A*Name:* ${name}%0A*Email:* ${email}%0A*Subject:* ${subj}%0A*Message:* ${msg}`;
+            window.open(`https://wa.me/919468955596?text=${text}`, "_blank");
+            event.target.reset();
         }
 
         // --- Autocomplete ---
