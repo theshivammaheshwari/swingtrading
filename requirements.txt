@@ -1,8 +1,5 @@
 fastapi
 uvicorn
-pandas
-yfinance
-ta
-beautifulsoup4
 requests
-numpy
+beautifulsoup4
+lxml

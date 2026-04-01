@@ -1,15 +1,9 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-import os
-
-# Fix Vercel Serverless read-only file system error for yfinance
-os.environ["YFINANCE_CACHE_DIR"] = "/tmp"
-
-import yfinance as yf
-import pandas as pd
-import numpy as np
-import ta
+import requests
+import json
+import math
 
 app = FastAPI()
 
@@ -21,9 +15,159 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def fetch_yf_data(symbol, range_val="6mo", interval="1d"):
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range={range_val}&interval={interval}"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    try:
+        res = requests.get(url, headers=headers, timeout=5)
+        if res.status_code == 200:
+            data = res.json()["chart"]["result"][0]
+            quotes = data["indicators"]["quote"][0]
+            closes = quotes.get("close", [])
+            valid_closes = [c for c in closes if c is not None]
+            return valid_closes
+    except:
+        pass
+    return []
+
+def calc_ema(data, span):
+    if len(data) < span: return None
+    mult = 2 / (span + 1)
+    ema = sum(data[:span]) / span
+    for val in data[span:]:
+        ema = (val - ema) * mult + ema
+    return ema
+
+def calc_macd(data):
+    if len(data) < 26: return None, None
+    ema12_list = []
+    ema26_list = []
+    mult12 = 2 / (12 + 1)
+    e12 = sum(data[:12]) / 12
+    for val in data[12:]:
+        e12 = (val - e12) * mult12 + e12
+        ema12_list.append(e12)
+    mult26 = 2 / (26 + 1)
+    e26 = sum(data[:26]) / 26
+    for val in data[26:]:
+        e26 = (val - e26) * mult26 + e26
+        ema26_list.append(e26)
+    macd_line = []
+    diff = len(ema12_list) - len(ema26_list)
+    for i in range(len(ema26_list)):
+        macd_line.append(ema12_list[i+diff] - ema26_list[i])
+    if len(macd_line) < 9: return None, None
+    macd_signal = calc_ema(macd_line, 9)
+    return macd_line[-1], macd_signal
+
+def calc_rsi(data, period=14):
+    if len(data) < period + 1: return None
+    gains = []
+    losses = []
+    for i in range(1, len(data)):
+        change = data[i] - data[i-1]
+        if change > 0:
+            gains.append(change)
+            losses.append(0)
+        else:
+            gains.append(0)
+            losses.append(abs(change))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+    if avg_loss == 0: return 100
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
+
+@app.get("/api/market/indices")
+def get_indices():
+    results = []
+    indices = [("^NSEI", "NIFTY 50"), ("^NSEBANK", "BANK NIFTY"), ("^BSESN", "SENSEX")]
+    for sym, name in indices:
+        closes = fetch_yf_data(sym, "5d", "1d")
+        if len(closes) >= 2:
+            current = closes[-1]
+            prev = closes[-2]
+            chg = current - prev
+            pct = (chg / prev) * 100
+            results.append({"name": name, "price": round(current, 2), "change": round(chg, 2), "pct": round(pct, 2)})
+    return results
+
+@app.get("/api/market/movers")
+def get_top_movers():
+    symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "HINDUNILVR", "ICICIBANK", "KOTAKBANK", "SBIN", "BHARTIARTL", "BAJFINANCE"]
+    data_list = []
+    for s in symbols:
+        closes = fetch_yf_data(f"{s}.NS", "5d", "1d")
+        if len(closes) >= 2:
+            cur = closes[-1]
+            prv = closes[-2]
+            change = cur - prv
+            pct = (change / prv) * 100
+            data_list.append({"Symbol": s, "Company": s, "Price": round(cur, 2), "Change": round(change, 2), "Pct": round(pct, 2)})
+    if not data_list: return {"gainers": [], "losers": []}
+    data_list.sort(key=lambda x: x["Pct"], reverse=True)
+    return {"gainers": data_list[:5], "losers": sorted(data_list[-5:], key=lambda x: x["Pct"])}
+
+@app.get("/api/stock/search")
+def search_stock(q: str = Query("")):
+    defaults = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "BHARTIARTL", "ITC", "LT", "BAJFINANCE"]
+    return [{"symbol": s} for s in defaults if q.upper() in s]
+
+def get_stock_analysis_logic(ticker: str):
+    closes = fetch_yf_data(f"{ticker.upper()}.NS", "6mo", "1d")
+    if not closes or len(closes) < 30:
+        return {"error": f"No data for {ticker}"}
+    latest_price = closes[-1]
+    rsi = calc_rsi(closes)
+    macd, macd_sig = calc_macd(closes)
+    ema10 = calc_ema(closes, 10)
+    ema20 = calc_ema(closes, 20)
+    
+    signal = "Neutral 🟡"
+    points = 0
+    if rsi:
+        if rsi < 40: points += 1
+        if rsi > 70: points -= 1
+    if macd and macd_sig:
+        if macd > macd_sig: points += 1
+        if macd < macd_sig: points -= 1
+    if ema10 and ema20:
+        if ema10 > ema20: points += 1
+        if ema10 < ema20: points -= 1
+    if points >= 2: signal = "Strong Buy 🟢"
+    elif points == 1: signal = "Buy 🟢"
+    elif points <= -2: signal = "Strong Sell 🔴"
+    elif points == -1: signal = "Sell 🔴"
+    
+    return {
+        "symbol": ticker.upper(),
+        "price": round(latest_price, 2),
+        "rsi": round(rsi, 2) if rsi else "N/A",
+        "macd": round(macd, 2) if macd else "N/A",
+        "ema10": round(ema10, 2) if ema10 else "N/A",
+        "ema20": round(ema20, 2) if ema20 else "N/A",
+        "signal": signal
+    }
+
+@app.get("/api/stock/analyze")
+def analyze_stock(ticker: str):
+    try: return get_stock_analysis_logic(ticker)
+    except Exception as e: return {"error": str(e)}
+
+@app.get("/api/stocks/compare")
+def compare_stocks(tickers: str):
+    symbols = [t.strip() for t in tickers.split(",") if t.strip()][:5]
+    results = []
+    for sym in symbols:
+        try: results.append(get_stock_analysis_logic(sym))
+        except Exception as e: results.append({"symbol": sym, "error": str(e)})
+    return results
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    # Return the HTML directly so Vercel doesn't have filesystem path issues
     html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -200,9 +344,12 @@ def read_root():
                         <div class="text-right"><span class="block font-semibold">₹${item.Price}</span><span class="text-sm font-bold text-${color}-600">${item.Pct > 0 ? '+' : ''}${item.Pct}%</span></div>
                     </div>
                 `).join('');
-                if(data.gainers.length) {
+                if(data.gainers && data.gainers.length) {
                     document.getElementById('gainers-container').innerHTML = render(data.gainers, 'green');
                     document.getElementById('losers-container').innerHTML = render(data.losers, 'red');
+                } else {
+                    document.getElementById('gainers-container').innerHTML = '<p class="text-slate-500">No data could be extracted.</p>';
+                    document.getElementById('losers-container').innerHTML = '<p class="text-slate-500">No data could be extracted.</p>';
                 }
             } catch(e) { }
         }
@@ -213,9 +360,9 @@ def read_root():
             if(!ticker) return;
             const btn = document.querySelector('button');
             const resultBox = document.getElementById('analysis-result');
-            btn.innerHTML = '...'); btn.disabled = true;
+            btn.innerHTML = '...'; btn.disabled = true;
             resultBox.classList.remove('hidden');
-            resultBox.innerHTML = '<p class="col-span-full text-center py-4 text-blue-600 animate-pulse">Running Technical Analysis...</p>';
+            resultBox.innerHTML = '<p class="col-span-full text-center py-4 text-blue-600 animate-pulse">Running Technical Analysis without Ta-Lib...</p>';
             try {
                 const res = await fetch(`/api/stock/analyze?ticker=${ticker}`);
                 const data = await res.json();
@@ -268,195 +415,3 @@ def read_root():
 </body>
 </html>"""
     return HTMLResponse(content=html_content, status_code=200)
-
-@app.get("/api/market/indices")
-def get_indices():
-    try:
-        symbols = ["^NSEI", "^NSEBANK", "^BSESN"]
-        names = {"^NSEI": "NIFTY 50", "^NSEBANK": "BANK NIFTY", "^BSESN": "SENSEX"}
-        r = []
-        data = yf.download(symbols, period="5d", group_by="ticker", threads=True, progress=False)
-        
-        for s in symbols:
-            try:
-                # Based on yfinance version, single ticker 'Close' is a Series or DataFrame column
-                if isinstance(data.columns, pd.MultiIndex):
-                    h = data[s]['Close'].dropna()
-                else:
-                    if len(symbols) == 1:
-                        h = data['Close'].dropna()
-                    else:
-                        h = data.xs(s, level='Ticker', axis=1)['Close'].dropna() if 'Ticker' in data.columns.names else data[s]['Close'].dropna()
-                
-                # Check for enough days backward
-                if len(h) >= 2:
-                    current_price = float(h.iloc[-1])
-                    prev_price = float(h.iloc[-2])
-                    change = current_price - prev_price
-                    change_pct = (change / prev_price) * 100
-                    r.append({'name': names[s], 'price': round(current_price, 2), 'change': round(change, 2), 'pct': round(change_pct, 2)})
-            except Exception as e:
-                print(f"Error parsing index {s}: {e}")
-                pass
-        
-        # Fallback if bulk download fails formats
-        if not r:
-            for s in symbols:
-                t = yf.Ticker(s)
-                h = t.history(period="5d")
-                if len(h) >= 2:
-                    c, p = float(h['Close'].iloc[-1]), float(h['Close'].iloc[-2])
-                    r.append({'name': names[s], 'price': round(c, 2), 'change': round(c-p, 2), 'pct': round(((c-p)/p)*100, 2)})
-        
-        if not r:
-            return [{"name": "Error", "price": 0, "change": 0, "pct": 0, "error": "No data returned from YFinance"}]
-        return r
-    except Exception as e:
-        return [{"name": "Failed", "price": 0, "change": 0, "pct": 0, "error": str(e)}]
-
-@app.get("/api/market/movers")
-def get_top_movers():
-    try:
-        nifty50_symbols = [
-                "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "HINDUNILVR.NS",
-                "ICICIBANK.NS", "KOTAKBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS"
-        ]
-        data_list = []
-        data = yf.download(nifty50_symbols, period="5d", group_by="ticker", threads=True, progress=False)
-        
-        for symbol in nifty50_symbols:
-            try:
-                if isinstance(data.columns, pd.MultiIndex):
-                    h = data[symbol]['Close'].dropna()
-                else:
-                    h = data[symbol]['Close'].dropna()
-                
-                if len(h) >= 2:
-                    current_price = float(h.iloc[-1])
-                    prev_price = float(h.iloc[-2])
-                    change = current_price - prev_price
-                    change_pct = (change / prev_price) * 100
-                    data_list.append({
-                        'Symbol': symbol.replace('.NS', ''),
-                        'Company': symbol.replace('.NS', ''), # simplified for speed since info loop takes too long
-                        'Price': round(current_price, 2),
-                        'Change': round(change, 2),
-                        'Pct': round(change_pct, 2)
-                    })
-            except Exception as e:
-                print(f"Error parsing mover {symbol}: {e}")
-                
-        # If bulk fails, fallback to simple loop for 3
-        if not data_list:
-            for s in nifty50_symbols[:3]:
-                t = yf.Ticker(s)
-                h = t.history(period="5d")
-                if len(h) >= 2:
-                    current_price = float(h['Close'].iloc[-1])
-                    prev_price = float(h['Close'].iloc[-2])
-                    data_list.append({
-                        'Symbol': s.replace('.NS', ''),
-                        'Company': s.replace('.NS', ''),
-                        'Price': round(current_price, 2),
-                        'Change': round(current_price - prev_price, 2),
-                        'Pct': round(((current_price - prev_price) / prev_price) * 100, 2)
-                    })
-
-        df = pd.DataFrame(data_list)
-        if df.empty: return {"gainers": [{"Symbol": "No Data", "Company": "Error", "Price": 0, "Pct": 0, "Change": 0}], "losers": []}
-        
-        df_sorted = df.sort_values('Pct', ascending=False)
-        gainers = df_sorted.head(5).to_dict(orient="records")
-        losers = df_sorted.tail(5).sort_values('Pct').to_dict(orient="records")
-        
-        return {"gainers": gainers, "losers": losers}
-    except Exception as e:
-        return {"error": str(e), "gainers": [], "losers": []}
-
-@app.get("/api/stock/search")
-def search_stock(q: str = Query("")):
-    try:
-        # Load simple mapping or first few matches from CSV if exists
-        if os.path.exists("nse_stock_list.csv"):
-            df = pd.read_csv("nse_stock_list.csv")
-            # First column is usually SYMBOL in NSE
-            if len(df.columns) > 0:
-                col_sym = df.columns[0]
-                q_upper = q.upper()
-                df_str = df[col_sym].astype(str)
-                matches = df[df_str.str.contains(q_upper, na=False)].head(10)
-                return [{"symbol": s} for s in matches[col_sym].tolist()]
-    except Exception as e:
-        print("Search error:", str(e))
-    
-    # Fallback default list
-    defaults = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "BHARTIARTL", "ITC", "LT", "BAJFINANCE"]
-    return [{"symbol": s} for s in defaults if q.upper() in s]
-
-
-def get_stock_analysis_logic(ticker: str):
-    sym = f"{ticker.upper()}.NS"
-    stock = yf.Ticker(sym)
-    hist = stock.history(period="6mo", interval="1d")
-    
-    if hist.empty:
-        return {"error": f"No data found for {ticker}"}
-        
-    hist["RSI"] = ta.momentum.RSIIndicator(close=hist["Close"], window=14).rsi()
-    macd_ind = ta.trend.MACD(close=hist["Close"])
-    hist["MACD"] = macd_ind.macd()
-    hist["MACD_Signal"] = macd_ind.macd_signal()
-    hist["EMA10"] = hist["Close"].ewm(span=10).mean()
-    hist["EMA20"] = hist["Close"].ewm(span=20).mean()
-    
-    latest = hist.iloc[-1]
-    
-    # Generate Buy/Sell Signal
-    signal = "Neutral 🟡"
-    points = 0
-    if not np.isnan(latest["RSI"]):
-        if latest["RSI"] < 40: points += 1
-        if latest["RSI"] > 70: points -= 1
-    if not np.isnan(latest["MACD"]) and not np.isnan(latest["MACD_Signal"]):
-        if latest["MACD"] > latest["MACD_Signal"]: points += 1
-        if latest["MACD"] < latest["MACD_Signal"]: points -= 1
-    if not np.isnan(latest["EMA10"]) and not np.isnan(latest["EMA20"]):
-        if latest["EMA10"] > latest["EMA20"]: points += 1
-        if latest["EMA10"] < latest["EMA20"]: points -= 1
-    
-    if points >= 2: signal = "Strong Buy 🟢"
-    elif points == 1: signal = "Buy 🟢"
-    elif points <= -2: signal = "Strong Sell 🔴"
-    elif points == -1: signal = "Sell 🔴"
-    
-    return {
-        "symbol": ticker.upper(),
-        "price": round(latest["Close"], 2),
-        "rsi": round(latest["RSI"], 2) if not np.isnan(latest["RSI"]) else None,
-        "macd": round(latest["MACD"], 2) if not np.isnan(latest["MACD"]) else None,
-        "ema10": round(latest["EMA10"], 2) if not np.isnan(latest["EMA10"]) else None,
-        "ema20": round(latest["EMA20"], 2) if not np.isnan(latest["EMA20"]) else None,
-        "signal": signal
-    }
-
-@app.get("/api/stock/analyze")
-def analyze_stock(ticker: str):
-    try:
-        data = get_stock_analysis_logic(ticker)
-        if "error" in data:
-            return data
-        return data
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.get("/api/stocks/compare")
-def compare_stocks(tickers: str):
-    symbols = [t.strip() for t in tickers.split(",") if t.strip()]
-    results = []
-    for sym in symbols[:5]: # limit to 5 to avoid Vercel timeout
-        try:
-            data = get_stock_analysis_logic(sym)
-            results.append(data)
-        except Exception as e:
-            results.append({"symbol": sym, "error": str(e)})
-    return results
