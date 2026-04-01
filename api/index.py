@@ -21,13 +21,251 @@ app.add_middleware(
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    # Read the HTML file from the public directory
-    try:
-        with open("public/index.html", "r", encoding="utf-8") as f:
-            html_content = f.read()
-        return HTMLResponse(content=html_content, status_code=200)
-    except Exception as e:
-        return f"Error loading index.html: {str(e)}"
+    # Return the HTML directly so Vercel doesn't have filesystem path issues
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swing Trading Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">📊 Swing Trading Dashboard</h1>
+            <p class="text-sm opacity-80">By Shivam Maheshwari</p>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="container mx-auto mt-4 px-4 border-b">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button onclick="switchTab('home')" id="tab-home" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Stock Analysis</button>
+            <button onclick="switchTab('compare')" id="tab-compare" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">🔀 Compare Stocks</button>
+        </nav>
+    </div>
+
+    <main class="container mx-auto mt-6 px-4 pb-12">
+        <div id="view-home">
+            <!-- Indices Board -->
+            <section id="indices-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="p-6 bg-white rounded-lg shadow animate-pulse">Loading Market Data...</div>
+            </section>
+
+            <!-- Technical Analysis Search -->
+            <section class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500 mb-8 relative">
+                <h2 class="text-xl font-bold mb-4">Stock Technical Analysis (Signal generated)</h2>
+                <div class="flex gap-2 mb-4 relative">
+                    <input type="text" id="ticker-input" autocomplete="off" oninput="searchSuggestions()" placeholder="Type Ticker (e.g. RELIANCE, TCS)" class="border p-2 rounded-md flex-grow focus:outline-blue-500 uppercase" />
+                    <button onclick="analyzeStock()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-semibold transition">Analyze</button>
+                    
+                    <!-- Autocomplete dropdown -->
+                    <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md top-12 mt-1 hidden shadow-lg max-h-48 overflow-y-auto"></div>
+                </div>
+                
+                <div id="analysis-result" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 p-4 bg-slate-50 rounded mt-4">
+                    <!-- Content injected here -->
+                </div>
+            </section>
+
+            <!-- Top Movers -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-green-500">
+                    <h3 class="text-lg font-bold text-green-700 mb-4">🔥 Top Gainers (Nifty)</h3>
+                    <div id="gainers-container" class="space-y-3">Loading...</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow border-t-4 border-red-500">
+                    <h3 class="text-lg font-bold text-red-700 mb-4">⚠️ Top Losers (Nifty)</h3>
+                    <div id="losers-container" class="space-y-3">Loading...</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Compare View -->
+        <div id="view-compare" class="hidden">
+            <section class="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
+                <h2 class="text-xl font-bold mb-2">Compare Stocks (Max 5)</h2>
+                <p class="text-sm text-gray-500 mb-4">Enter comma-separated tickers (e.g. RELIANCE, TCS, INFY)</p>
+                <div class="flex gap-2 mb-6">
+                    <input type="text" id="compare-input" placeholder="RELIANCE, TCS" class="border p-2 rounded-md flex-grow focus:outline-purple-500 uppercase" />
+                    <button onclick="compareStocks()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md font-semibold transition">Compare</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="uppercase tracking-wider border-b-2 bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-4">Symbol</th>
+                                <th class="px-6 py-4">Price</th>
+                                <th class="px-6 py-4">Signal</th>
+                                <th class="px-6 py-4">RSI (14)</th>
+                                <th class="px-6 py-4">MACD</th>
+                                <th class="px-6 py-4">EMA 10 / 20</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compare-result">
+                            <tr><td colspan="6" class="text-center py-4 text-gray-500">Enter tickers and click Compare</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="text-center p-6 text-slate-500 text-sm mt-10 bg-white border-t">
+        <p>⚠️ <strong>Disclaimer / अस्वीकरण:</strong></p>
+        <p class="mt-1">This project is developed for educational and portfolio purposes only. Not financial advice. Please consult a SEBI-registered adviser before investing.</p>
+        <p class="mt-1">यह प्रोजेक्ट केवल शैक्षिक और पोर्टफोलियो उद्देश्यों के लिए बनाया गया है। यह निवेश या वित्तीय सलाह नहीं है। कृपया निवेश से पहले SEBI-रजिस्टर्ड सलाहकार से परामर्श करें।</p>
+        
+        <div class="mt-4">
+            <a href="https://theshivammaheshwari.github.io/swingtrading/support.html" target="_blank" class="inline-block bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-full font-bold shadow-md transition">
+                ☕ Support the Developer / डेवलपर को सपोर्ट करें
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        // --- Navigation ---
+        function switchTab(tab) {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-compare').classList.add('hidden');
+            document.getElementById('tab-home').className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            document.getElementById('tab-compare').className = "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            if (tab === 'home') document.getElementById('tab-home').className = "border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+            if (tab === 'compare') document.getElementById('tab-compare').className = "border-purple-500 text-purple-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm";
+        }
+
+        // --- Autocomplete ---
+        let debounceTimer;
+        async function searchSuggestions() {
+            clearTimeout(debounceTimer);
+            const q = document.getElementById('ticker-input').value;
+            const list = document.getElementById('autocomplete-list');
+            if(q.length < 2) { list.classList.add('hidden'); return; }
+            
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/stock/search?q=${q}`);
+                    const data = await res.json();
+                    if(data.length > 0) {
+                        list.innerHTML = data.map(item => `<div class="cursor-pointer p-2 hover:bg-blue-100" onclick="selectSuggestion('${item.symbol}')">${item.symbol}</div>`).join('');
+                        list.classList.remove('hidden');
+                    } else {
+                        list.classList.add('hidden');
+                    }
+                } catch(e) {}
+            }, 300);
+        }
+        function selectSuggestion(sym) {
+            document.getElementById('ticker-input').value = sym;
+            document.getElementById('autocomplete-list').classList.add('hidden');
+        }
+        document.addEventListener('click', (e) => {
+            const list = document.getElementById('autocomplete-list');
+            if(e.target.id !== 'ticker-input' && list) list.classList.add('hidden');
+        });
+
+        // --- Fetch Market Data ---
+        async function fetchIndices() {
+            try {
+                const res = await fetch('/api/market/indices');
+                const data = await res.json();
+                document.getElementById('indices-container').innerHTML = data.map(idx => `
+                    <div class="p-5 bg-white rounded-lg shadow flex flex-col items-center justify-center border border-slate-100">
+                        <h3 class="text-slate-500 text-sm uppercase font-bold tracking-wide">${idx.name}</h3>
+                        <p class="text-2xl font-bold my-1">₹${idx.price.toLocaleString('en-IN')}</p>
+                        <p class="font-semibold px-2 py-0.5 rounded text-sm ${idx.change >= 0 ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">
+                            ${idx.change > 0 ? '+' : ''}${idx.change} (${idx.pct > 0 ? '+' : ''}${idx.pct}%)
+                        </p>
+                    </div>
+                `).join('');
+            } catch(e) { console.error('Error fetching indices', e); }
+        }
+
+        async function fetchMovers() {
+            try {
+                const res = await fetch('/api/market/movers');
+                const data = await res.json();
+                const render = (items, color) => items.map(item => `
+                    <div class="flex justify-between items-center border-b pb-2 last:border-0 border-slate-100 mt-2">
+                        <div><span class="font-bold block">${item.Symbol}</span><span class="text-xs text-slate-500">${item.Company.substring(0,25)}</span></div>
+                        <div class="text-right"><span class="block font-semibold">₹${item.Price}</span><span class="text-sm font-bold text-${color}-600">${item.Pct > 0 ? '+' : ''}${item.Pct}%</span></div>
+                    </div>
+                `).join('');
+                if(data.gainers.length) {
+                    document.getElementById('gainers-container').innerHTML = render(data.gainers, 'green');
+                    document.getElementById('losers-container').innerHTML = render(data.losers, 'red');
+                }
+            } catch(e) { }
+        }
+
+        // --- Single Stock Analysis ---
+        async function analyzeStock() {
+            const ticker = document.getElementById('ticker-input').value;
+            if(!ticker) return;
+            const btn = document.querySelector('button');
+            const resultBox = document.getElementById('analysis-result');
+            btn.innerHTML = '...'); btn.disabled = true;
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = '<p class="col-span-full text-center py-4 text-blue-600 animate-pulse">Running Technical Analysis...</p>';
+            try {
+                const res = await fetch(`/api/stock/analyze?ticker=${ticker}`);
+                const data = await res.json();
+                if (data.error) { resultBox.innerHTML = `<p class="col-span-full text-red-500 text-center">${data.error}</p>`; } 
+                else {
+                    resultBox.innerHTML = `
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">Stock</p><p class="font-bold text-lg text-blue-800">${data.symbol}</p></div>
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">Price</p><p class="font-bold text-lg">₹${data.price}</p></div>
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">Rec / Signal</p><p class="font-bold text-lg ${data.signal.includes('Buy') ? 'text-green-600' : data.signal.includes('Sell') ? 'text-red-600' : 'text-yellow-600'}">${data.signal}</p></div>
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">RSI (14)</p><p class="font-bold text-lg ${data.rsi > 70 ? 'text-red-600' : data.rsi < 30 ? 'text-green-600' : 'text-slate-700'}">${data.rsi || 'N/A'}</p></div>
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">MACD</p><p class="font-bold text-lg ${data.macd > 0 ? 'text-green-600' : 'text-red-600'}">${data.macd || 'N/A'}</p></div>
+                        <div class="p-3 bg-white rounded border shadow-sm text-center"><p class="text-xs text-slate-500 font-bold uppercase mb-1">EMA 10 / 20</p><p class="font-bold text-md">${data.ema10} / ${data.ema20}</p></div>
+                    `;
+                }
+            } catch(e) { resultBox.innerHTML = `<p class="col-span-full text-red-500">Failed to fetch data.</p>`; } 
+            finally { btn.innerHTML = 'Analyze'; btn.disabled = false; }
+        }
+
+        // --- Compare Stocks ---
+        async function compareStocks() {
+            const tickers = document.getElementById('compare-input').value;
+            if(!tickers) return;
+            const resBody = document.getElementById('compare-result');
+            resBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-purple-600 animate-pulse">Comparing stocks...</td></tr>`;
+            try {
+                const res = await fetch(`/api/stocks/compare?tickers=${tickers}`);
+                const data = await res.json();
+                resBody.innerHTML = data.map(row => {
+                    if(row.error) return `<tr class="border-b"><td class="px-6 py-4 font-bold">${row.symbol}</td><td colspan="5" class="text-red-500 px-6 py-4">${row.error}</td></tr>`;
+                    let sigColor = row.signal.includes('Buy') ? 'text-green-600 font-bold bg-green-50' : row.signal.includes('Sell') ? 'text-red-600 font-bold bg-red-50' : 'text-yellow-600 font-bold bg-yellow-50';
+                    return `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="px-6 py-4 font-bold border-r">${row.symbol}</td>
+                            <td class="px-6 py-4">₹${row.price}</td>
+                            <td class="px-6 py-4 ${sigColor} rounded">${row.signal}</td>
+                            <td class="px-6 py-4">${row.rsi}</td>
+                            <td class="px-6 py-4">${row.macd}</td>
+                            <td class="px-6 py-4 text-xs text-gray-600">${row.ema10} <br> ${row.ema20}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                resBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">Error comparing stocks</td></tr>`;
+            }
+        }
+
+        // Initialize Home Data
+        document.addEventListener('DOMContentLoaded', () => { fetchIndices(); fetchMovers(); });
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content, status_code=200)
 
 @app.get("/api/market/indices")
 def get_indices():
